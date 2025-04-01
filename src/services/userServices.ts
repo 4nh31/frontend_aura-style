@@ -1,0 +1,26 @@
+import { genericRequest } from "../utils/genericRequestUtils";
+import { ILogin } from "../interfaces/ILogin";
+import { IRegister } from "../interfaces/IRegister";
+
+export const login = async (data: ILogin) => {
+  const response = await genericRequest('/usuarios/login', 'POST', data);
+  return response;
+}
+
+export const register = async (data: IRegister) => {
+  const response = await genericRequest('/usuarios/', 'POST', data);
+  return response;
+}
+
+export const getuser = async (idUsuario: number) => {
+  return await genericRequest(`/usuarios/${idUsuario}`, 'GET', undefined, true);
+};
+
+export const deleteuser = async (idUsuario: number) => {
+  return await genericRequest(`/usuarios/${idUsuario}`, 'DELETE', undefined, true);
+};
+
+// Add this function to update user information
+export const updateUser = async (idUsuario: number, data: Partial<IRegister>) => {
+  return await genericRequest(`/usuarios/${idUsuario}`, 'PUT', data, true);
+};
