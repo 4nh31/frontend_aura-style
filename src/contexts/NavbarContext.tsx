@@ -5,11 +5,13 @@ interface NavbarContextProps {
   isLoggedIn: boolean;
   username: string | null;
   email: string | null;
+  role: string | null;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   setIsLoggedIn: (isLoggedIn: boolean) => void;
   setUsername: (username: string | null) => void;
   setEmail: (email: string | null) => void;
+  setRole: (role: string | null) => void;
 }
 
 const NavbarContext = createContext<NavbarContextProps>({
@@ -17,11 +19,13 @@ const NavbarContext = createContext<NavbarContextProps>({
   isLoggedIn: false,
   username: null,
   email: null,
+  role: null,
   openLoginModal: () => {},
   closeLoginModal: () => {},
   setIsLoggedIn: () => {},
   setUsername: () => {},
   setEmail: () => {},
+  setRole: () => {},
 });
 
 export const useNavbarContext = () => useContext(NavbarContext);
@@ -42,6 +46,9 @@ export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
   const [email, setEmail] = useState<string | null>(() => {
     return localStorage.getItem('email');
   });
+  const [role, setRole] = useState<string | null>(() => {
+    return localStorage.getItem('role');
+  });
 
   // Guardar en localStorage cuando los valores cambien
   useEffect(() => {
@@ -58,6 +65,11 @@ export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
     else localStorage.removeItem('email');
   }, [email]);
 
+  useEffect(() => {
+    if (role) localStorage.setItem('role', role);
+    else localStorage.removeItem('role');
+  }, [role]);
+
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
@@ -68,11 +80,13 @@ export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
         isLoggedIn,
         username,
         email,
+        role,
         openLoginModal,
         closeLoginModal,
         setIsLoggedIn,
         setUsername,
         setEmail,
+        setRole,
       }}
     >
       {children}

@@ -19,7 +19,7 @@ interface Coupon {
   discount: number;
 }
 
-const Admin: React.FC = () => {
+const AdminPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -38,13 +38,33 @@ const Admin: React.FC = () => {
   useEffect(() => {
     // Fetch products and coupons from the API
     const fetchProducts = async () => {
-      const response = await axios.get('/api/products');
-      setProducts(response.data);
+      try {
+        const response = await axios.get('/api/products');
+        if (Array.isArray(response.data)) {
+          setProducts(response.data);
+        } else {
+          console.error('Unexpected response format for products:', response.data);
+          setProducts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setProducts([]);
+      }
     };
 
     const fetchCoupons = async () => {
-      const response = await axios.get('/api/coupons');
-      setCoupons(response.data);
+      try {
+        const response = await axios.get('/api/couons');
+        if (Array.isArray(response.data)) {
+          setCoupons(response.data);
+        } else {
+          console.error('Unexpected response format for coupons:', response.data);
+          setCoupons([]);
+        }
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+        setCoupons([]);
+      }
     };
 
     fetchProducts();
@@ -259,51 +279,55 @@ const Admin: React.FC = () => {
 
       <h2 className="text-2xl font-bold mt-8 mb-4">Productos Existentes</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2 border-b text-left">Imagen Principal</th>
-              <th className="py-2 border-b text-left">ImgSec_UNO</th>
-              <th className="py-2 border-b text-left">ImgSec_DOS</th>
-              <th className="py-2 border-b text-left">Nombre</th>
-              <th className="py-2 border-b text-left">Descripción</th>
-              <th className="py-2 border-b text-left">Precio</th>
-              <th className="py-2 border-b text-left">Categoría</th>
-              <th className="py-2 border-b text-left">STOCK</th>
-              <th className="py-2 border-b text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map(product => (
-              <tr key={product.id}>
-                <td className="py-2 border-b">
-                  <img src={product.imagenPrincipal} alt={product.nombre} className="w-24 h-24 object-cover rounded-md" />
-                </td>
-                <td className="py-2 border-b">{product.imagenSecundariaUno}</td>
-                <td className="py-2 border-b">{product.imagenSecundariaDos}</td>
-                <td className="py-2 border-b">{product.nombre}</td>
-                <td className="py-2 border-b">{product.descripcion}</td>
-                <td className="py-2 border-b">${product.precio}</td>
-                <td className="py-2 border-b">{product.categoria}</td>
-                <td className="py-2 border-b">{product.stock}</td>
-                <td className="py-2 border-b">
-                  <button
-                    onClick={() => handleEditProduct(product)}
-                    className="bg-blue-500 text-white py-1 px-2 rounded-md hover:bg-blue-700 transition-colors mr-2"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProduct(product.id)}
-                    className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
-                  >
-                    Eliminar
-                  </button>
-                </td>
+        {Array.isArray(products) ? (
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 border-b text-left">Imagen Principal</th>
+                <th className="py-2 border-b text-left">ImgSec_UNO</th>
+                <th className="py-2 border-b text-left">ImgSec_DOS</th>
+                <th className="py-2 border-b text-left">Nombre</th>
+                <th className="py-2 border-b text-left">Descripción</th>
+                <th className="py-2 border-b text-left">Precio</th>
+                <th className="py-2 border-b text-left">Categoría</th>
+                <th className="py-2 border-b text-left">STOCK</th>
+                <th className="py-2 border-b text-left">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {products.map(product => (
+                <tr key={product.id}>
+                  <td className="py-2 border-b">
+                    <img src={product.imagenPrincipal} alt={product.nombre} className="w-24 h-24 object-cover rounded-md" />
+                  </td>
+                  <td className="py-2 border-b">{product.imagenSecundariaUno}</td>
+                  <td className="py-2 border-b">{product.imagenSecundariaDos}</td>
+                  <td className="py-2 border-b">{product.nombre}</td>
+                  <td className="py-2 border-b">{product.descripcion}</td>
+                  <td className="py-2 border-b">${product.precio}</td>
+                  <td className="py-2 border-b">{product.categoria}</td>
+                  <td className="py-2 border-b">{product.stock}</td>
+                  <td className="py-2 border-b">
+                    <button
+                      onClick={() => handleEditProduct(product)}
+                      className="bg-blue-500 text-white py-1 px-2 rounded-md hover:bg-blue-700 transition-colors mr-2"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No se encontraron productos.</p>
+        )}
       </div>
 
       <h2 className="text-2xl font-bold mt-8 mb-4">
@@ -339,40 +363,44 @@ const Admin: React.FC = () => {
 
       <h2 className="text-2xl font-bold mt-8 mb-4">Cupones Existentes</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2 border-b text-left">Código</th>
-              <th className="py-2 border-b text-left">Descuento</th>
-              <th className="py-2 border-b text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {coupons.map(coupon => (
-              <tr key={coupon.id}>
-                <td className="py-2 border-b">{coupon.code}</td>
-                <td className="py-2 border-b">{coupon.discount}%</td>
-                <td className="py-2 border-b">
-                  <button
-                    onClick={() => handleEditCoupon(coupon)}
-                    className="bg-blue-500 text-white py-1 px-2 rounded-md hover:bg-blue-700 transition-colors mr-2"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCoupon(coupon.id)}
-                    className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
-                  >
-                    Eliminar
-                  </button>
-                </td>
+        {Array.isArray(coupons) ? (
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 border-b text-left">Código</th>
+                <th className="py-2 border-b text-left">Descuento</th>
+                <th className="py-2 border-b text-left">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {coupons.map(coupon => (
+                <tr key={coupon.id}>
+                  <td className="py-2 border-b">{coupon.code}</td>
+                  <td className="py-2 border-b">{coupon.discount}%</td>
+                  <td className="py-2 border-b">
+                    <button
+                      onClick={() => handleEditCoupon(coupon)}
+                      className="bg-blue-500 text-white py-1 px-2 rounded-md hover:bg-blue-700 transition-colors mr-2"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCoupon(coupon.id)}
+                      className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No se encontraron cupones.</p>
+        )}
       </div>
     </div>
   );
 };
 
-export default Admin;
+export default AdminPage;

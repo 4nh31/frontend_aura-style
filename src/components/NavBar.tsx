@@ -23,7 +23,6 @@ interface Product {
 }
 
 const Navbar: React.FC = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRecoverPasswordModalOpen, setIsRecoverPasswordModalOpen] = useState(false); // Estado para el modal de recuperación de contraseña
@@ -33,7 +32,7 @@ const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const navigate = useNavigate();
-  const { isLoginModalOpen, isLoggedIn, username, openLoginModal, closeLoginModal, setIsLoggedIn, setUsername, setEmail: setUserEmail } = useNavbarContext();
+  const { isLoginModalOpen, isLoggedIn, username, openLoginModal, closeLoginModal, setIsLoggedIn, setUsername, setEmail: setUserEmail, role, setRole } = useNavbarContext();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,19 +44,30 @@ const Navbar: React.FC = () => {
       if (response) {
         console.log("Login exitoso:", response);
         
-        // Guardar token en localStorage o en contexto global (según cómo manejes la sesión)
+        // Guardar token y estado de autenticación en localStorage
         localStorage.setItem("token", response.token);
         localStorage.setItem('idUsuario', response.idUsuario.toString());
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('role', response.role);
         setIsLoggedIn(true);
         setUsername(response.username); // Actualizar el nombre de usuario
         setUserEmail(response.email); // Actualizar el correo electrónico
+        setRole(response.role); // Actualizar el rol del usuario
         closeLoginModal();
-        navigate("/"); // Redirige a la página principal
+        
+        console.log("Rol del usuario:", response.role);
+        if (response.role === 'admin') {
+          console.log("Abriendo /admin-page en una nueva pestaña");
+          window.open("/admin-page", "_blank"); // Abre la página de administración en una nueva pestaña
+        } else {
+          navigate("/"); // Redirige a la página principal si el usuario es normal
+        }
       } else {
         alert("Credenciales incorrectas");
       }
     } catch (error) {
       console.error("Error en el login:", error);
+      alert("Hubo un problema al iniciar sesión. Por favor, intenta de nuevo.");
     }
   };
 
@@ -71,9 +81,9 @@ const Navbar: React.FC = () => {
         password,
         telefono: null,  // Se envía como null
         direccion: null, // Se envía como null
-        rol: "usuario"       // Se envía como null
+        rol: "usuario"  // Se envía como usuario por defecto
       };
-     const response = await register(newUser);  
+      const response = await register(newUser);  
       if (response) {
         console.log("Registro exitoso:", response);
         setIsRegisterModalOpen(false);
@@ -85,8 +95,8 @@ const Navbar: React.FC = () => {
   };
 
   const handleLogout = () => {
+    console.log("Cerrando sesión y eliminando datos de localStorage");
     setIsLoggedIn(false);
-    setIsAdmin(false);
     setUsername(null);
     setUserEmail(null);
     setEmail('');
@@ -94,7 +104,9 @@ const Navbar: React.FC = () => {
     setIsDropdownOpen(false);
     localStorage.removeItem("token");
     localStorage.removeItem('idUsuario');
-    navigate("/login");
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('role');
+    navigate("/"); // Redirige a la página de inicio en lugar de "/login"
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,7 +155,6 @@ const Navbar: React.FC = () => {
         <div className="flex space-x-6 items-center flex-grow justify-center">
           <Link to="/" className="hover:text-gray-700 transition-colors">Inicio</Link>
           <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Categorías</Link>
-          {isAdmin && <Link to="/admin" className="hover:text-gray-700 transition-colors">Volver a administrador</Link>}
           <div className="relative w-1/3">
             <input
               type="text"
