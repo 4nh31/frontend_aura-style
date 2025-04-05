@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/img/Logo.png';
 import Modal from 'react-modal';
-import { recoverPassword } from '../utils/authUtils';
 import { useNavbarContext } from '../contexts/NavbarContext';
 import { ILogin } from '../interfaces/ILogin';
-import { login } from '../services/userServices';
+import { login, register, requestResetPassword } from '../services/userServices';
 import { IRegister } from '../interfaces/IRegister';
-import { register } from '../services/userServices';
+
 
 // Establecer el elemento de la aplicación para react-modal
 Modal.setAppElement('#root');
@@ -48,7 +47,7 @@ const Navbar: React.FC = () => {
         localStorage.setItem("token", response.token);
         localStorage.setItem('idUsuario', response.idUsuario.toString());
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('role', response.role);
+        localStorage.setItem('rol', response.role);
         setIsLoggedIn(true);
         setUsername(response.username); // Actualizar el nombre de usuario
         setUserEmail(response.email); // Actualizar el correo electrónico
@@ -56,9 +55,9 @@ const Navbar: React.FC = () => {
         closeLoginModal();
         
         console.log("Rol del usuario:", response.role);
-        if (response.role === 'admin') {
+        if (role === 'admin') {
           console.log("Abriendo /admin-page en una nueva pestaña");
-          window.open("/admin-page", "_blank"); // Abre la página de administración en una nueva pestaña
+          window.open("/admin-page"); // Abre la página de administración en una nueva pestaña
         } else {
           navigate("/"); // Redirige a la página principal si el usuario es normal
         }
@@ -127,7 +126,7 @@ const Navbar: React.FC = () => {
     setSearchResults([]);
   };
 
-  const handleRecoverPassword = (event: React.FormEvent) => {
+  /*const handleRecoverPassword = (event: React.FormEvent) => {
     event.preventDefault();
     const success = recoverPassword(recoverEmail);
     if (success) {
@@ -136,7 +135,21 @@ const Navbar: React.FC = () => {
     } else {
       alert('Correo no encontrado.');
     }
+  };*/
+
+  const handleRecoverPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const response = await requestResetPassword(recoverEmail);
+      alert('📩 Correo de recuperación enviado.');
+      setIsRecoverPasswordModalOpen(false);
+    } catch (error) {
+      alert('⚠️ No se pudo enviar el correo de recuperación.');
+      console.error("Error al solicitar reset:", error);
+    }
   };
+  
+  
 
   const handleManageAccount = () => {
     navigate('/manage-account');

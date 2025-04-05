@@ -4,7 +4,7 @@ import { IRegister } from "../interfaces/IRegister";
 
 export const login = async (data: ILogin) => {
   // Cambiar el endpoint a /auth/login
-  const response = await genericRequest('/auth/login', 'POST', data);
+  const response = await genericRequest('/usuarios/login', 'POST', data);
   return response;
 }
 
@@ -24,4 +24,12 @@ export const deleteuser = async (idUsuario: number) => {
 // Función para actualizar la información del usuario
 export const updateUser = async (idUsuario: number, data: Partial<IRegister>) => {
   return await genericRequest(`/usuarios/${idUsuario}`, 'PUT', data, true);
+};
+
+export const requestResetPassword = async (email: string) => {
+  return await genericRequest("/auth/forgot-password", "POST", { email });
+};
+
+export const resetPassword = async (newPassword: string, token: string) => {
+  return await genericRequest(`/auth/reset-password/${token}`, "POST", { newPassword });
 };
