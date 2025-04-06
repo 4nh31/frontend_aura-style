@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ICategoria } from '../interfaces/ICategoria';
+import { getcategory } from '../services/categoriaService';
 
 interface Product {
   id: number;
@@ -21,6 +23,7 @@ const ProductManagement: React.FC = () => {
   const [price, setPrice] = useState<number | string>('');
   const [stock, setStock] = useState<number | string>('');
   const [category, setCategory] = useState('');
+const [categorias, setCategorias] = useState<ICategoria[]>([]);
   const [imageMain, setImageMain] = useState<File | null>(null);
   const [imageSecOne, setImageSecOne] = useState<File | null>(null);
   const [imageSecTwo, setImageSecTwo] = useState<File | null>(null);
@@ -44,6 +47,19 @@ const ProductManagement: React.FC = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await getcategory();
+        setCategorias(response);
+      } catch (error) {
+        console.error('Error al obtener categorías:', error);
+      }
+    };
+  
+    fetchCategorias();
+  }, []);
+
   const handleAddProduct = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -52,7 +68,7 @@ const ProductManagement: React.FC = () => {
     formData.append('descripcion', description);
     formData.append('precio', price as string);
     formData.append('stock', stock as string);
-    formData.append('categoria', category);
+    formData.append('idCategoria', category);
 
     if (imageMain) formData.append('imagenPrincipal', imageMain);
     if (imageSecOne) formData.append('imagenSecundariaUno', imageSecOne);
@@ -83,7 +99,6 @@ const ProductManagement: React.FC = () => {
     setDescription('');
     setPrice('');
     setStock('');
-    setCategory('');
     setImageMain(null);
     setImageSecOne(null);
     setImageSecTwo(null);
@@ -189,14 +204,11 @@ const ProductManagement: React.FC = () => {
             className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
-            <option value="">Seleccionar</option>
-            <option value="Caballero">Caballero</option>
-            <option value="Dama">Dama</option>
-            <option value="Kids">Kids</option>
-            <option value="Bolsas">Bolsas</option>
-            <option value="Mochilas">Mochilas</option>
-            <option value="Calzado">Calzado</option>
-            <option value="Gorras">Gorras</option>
+            {categorias.map((cat) => (
+              <option key={cat.idCategoria} value={cat.idCategoria}>
+               {cat.nombre}
+               </option>
+            ))}
           </select>
         </div>
         <button type="submit" className="bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors">
