@@ -1,12 +1,17 @@
 import { genericRequest } from "../utils/genericRequestUtils";
-import { ICreateProduct } from "../interfaces/ICreateProduct";
+import { genericRequestConForm } from "../utils/genericRequestConForm";
 
 // Crear un producto
-export const createProducto = async (producto: ICreateProduct) => {
-  return await genericRequest("/productos", "POST", producto, true); // true = requiere token
-};
-
+export const createProductoConImagen = async (formData: FormData) => {
+    return await genericRequestConForm("/productos/", "POST", formData, true);
+  };
+  
 // Obtener productos (opcional, si lo necesitas para listar)
 export const getProductos = async () => {
-  return await genericRequest("/productos", "GET", undefined, true);
+  return await genericRequest("/productos/", "GET", undefined,);
 };
+
+export const deleteProduct = async (idProducto: number) => {
+    return await genericRequest(`/productos/${idProducto}`, 'DELETE', undefined, true);
+  };
+  

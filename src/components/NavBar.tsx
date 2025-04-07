@@ -7,7 +7,6 @@ import { ILogin } from '../interfaces/ILogin';
 import { login, register, requestResetPassword } from '../services/userServices';
 import { IRegister } from '../interfaces/IRegister';
 
-
 // Establecer el elemento de la aplicación para react-modal
 Modal.setAppElement('#root');
 
@@ -101,6 +100,7 @@ const Navbar: React.FC = () => {
     setEmail('');
     setPassword('');
     setIsDropdownOpen(false);
+    setRole('');
     localStorage.removeItem("token");
     localStorage.removeItem('idUsuario');
     localStorage.removeItem('isLoggedIn');

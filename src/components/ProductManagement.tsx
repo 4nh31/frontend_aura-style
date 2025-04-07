@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ICategoria } from '../interfaces/ICategoria';
 import { getcategory } from '../services/categoriaService';
+import { createProductoConImagen, getProductos } from '../services/productService';
 
 interface Product {
   id: number;
@@ -9,7 +10,7 @@ interface Product {
   descripcion: string;
   precio: number;
   stock: number;
-  categoria: string;
+  idCategoria: number;
   imagenPrincipal: string;
   imagenSecundariaUno: string;
   imagenSecundariaDos: string;
@@ -22,8 +23,8 @@ const ProductManagement: React.FC = () => {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<number | string>('');
   const [stock, setStock] = useState<number | string>('');
-  const [category, setCategory] = useState('');
-const [categorias, setCategorias] = useState<ICategoria[]>([]);
+  const [category, setCategory] = useState<number | ''>('');
+  const [categorias, setCategorias] = useState<ICategoria[]>([]);
   const [imageMain, setImageMain] = useState<File | null>(null);
   const [imageSecOne, setImageSecOne] = useState<File | null>(null);
   const [imageSecTwo, setImageSecTwo] = useState<File | null>(null);
@@ -31,15 +32,15 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('/api/products');
-        if (response.data && Array.isArray(response.data)) {
-          setProducts(response.data);
+        const response = await getProductos();
+        if (Array.isArray(response)) {
+          setProducts(response);
         } else {
-          console.error('Unexpected response format for products:', response.data);
+          console.error('Formato inesperado de productos:', response);
           setProducts([]);
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error al obtener productos:', error);
         setProducts([]);
       }
     };
@@ -56,7 +57,7 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
         console.error('Error al obtener categorías:', error);
       }
     };
-  
+
     fetchCategorias();
   }, []);
 
@@ -68,11 +69,11 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
     formData.append('descripcion', description);
     formData.append('precio', price as string);
     formData.append('stock', stock as string);
-    formData.append('idCategoria', category);
+    formData.append('idCategoria', category.toString());
 
-    if (imageMain) formData.append('imagenPrincipal', imageMain);
-    if (imageSecOne) formData.append('imagenSecundariaUno', imageSecOne);
-    if (imageSecTwo) formData.append('imagenSecundariaDos', imageSecTwo);
+    if (imageMain) formData.append('imagenes', imageMain);
+    if (imageSecOne) formData.append('imagenes', imageSecOne);
+    if (imageSecTwo) formData.append('imagenes', imageSecTwo);
 
     if (editingProduct) {
       const response = await axios.put(`/api/products/${editingProduct.id}`, formData, {
@@ -86,12 +87,12 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
       setProducts(updatedProducts);
       setEditingProduct(null);
     } else {
-      const response = await axios.post('/api/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      setProducts([...products, response.data]);
+      try {
+        const response = await createProductoConImagen(formData);
+        setProducts([...products, response]);
+      } catch (error) {
+        console.error("Error al crear producto:", error);
+      }
     }
 
     // Clear the form
@@ -104,13 +105,15 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
     setImageSecTwo(null);
   };
 
+
+
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setName(product.nombre);
     setDescription(product.descripcion);
     setPrice(product.precio);
     setStock(product.stock);
-    setCategory(product.categoria);
+    setCategory(product.idCategoria);
   };
 
   const handleDeleteProduct = async (id: number) => {
@@ -200,14 +203,17 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
           <label className="block text-gray-700 mb-2">Categoría</label>
           <select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => setCategory(Number(e.target.value))}
             className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
+            <option value="" disabled>
+              Selecciona una categoría
+            </option>
             {categorias.map((cat) => (
               <option key={cat.idCategoria} value={cat.idCategoria}>
-               {cat.nombre}
-               </option>
+                {cat.nombre}
+              </option>
             ))}
           </select>
         </div>
@@ -237,14 +243,29 @@ const [categorias, setCategorias] = useState<ICategoria[]>([]);
               {products.map(product => (
                 <tr key={product.id} className="border-b">
                   <td className="py-2 px-4">
-                    <img src={product.imagenPrincipal} alt={product.nombre} className="w-24 h-24 object-cover rounded-md" />
+                    {product.imagenPrincipal ? (
+                      product.imagenPrincipal
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
                   </td>
-                  <td className="py-2 px-4">{product.imagenSecundariaUno}</td>
-                  <td className="py-2 px-4">{product.imagenSecundariaDos}</td>
+                  <td className="py-2 px-4">  {product.imagenSecundariaUno ? (
+                    product.imagenSecundariaUno
+                  ) : (
+                    <span className="text-gray-500 italic">Sin imagen</span>
+                  )}</td>
+                  <td className="py-2 px-4">  {product.imagenSecundariaDos ? (
+                    product.imagenSecundariaDos
+                  ) : (
+                    <span className="text-gray-500 italic">Sin imagen</span>
+                  )}</td>
                   <td className="py-2 px-4">{product.nombre}</td>
                   <td className="py-2 px-4">{product.descripcion}</td>
                   <td className="py-2 px-4">${product.precio}</td>
-                  <td className="py-2 px-4">{product.categoria}</td>
+                  <td className="py-2 px-4">  {
+                    categorias.find(cat => cat.idCategoria === product.idCategoria)?.nombre ||
+                    <span className="text-gray-500 italic">Sin categoría</span>
+                  }</td>
                   <td className="py-2 px-4">{product.stock}</td>
                   <td className="py-2 px-4">
                     <button
