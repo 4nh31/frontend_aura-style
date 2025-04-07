@@ -16,7 +16,7 @@ const CouponManagement: React.FC = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const response = await axios.get('/api/coupons');
+        const response = await axios.get('http://localhost:3000/api/cupones'); // Update URL to your backend server
         if (Array.isArray(response.data)) {
           setCoupons(response.data);
         } else {
@@ -40,7 +40,7 @@ const CouponManagement: React.FC = () => {
         code: couponCode,
         discount: parseFloat(discount as string),
       };
-      const response = await axios.put(`/api/coupons/${editingCoupon.id}`, updatedCoupon);
+      const response = await axios.put(`http://localhost:3000/api/cupones/${editingCoupon.id}`, updatedCoupon); // Update URL to your backend server
       const updatedCoupons = coupons.map(coupon =>
         coupon.id === editingCoupon.id ? response.data : coupon
       );
@@ -48,11 +48,10 @@ const CouponManagement: React.FC = () => {
       setEditingCoupon(null);
     } else {
       const newCoupon = {
-        id: Date.now(),
         code: couponCode,
         discount: parseFloat(discount as string),
       };
-      const response = await axios.post('/api/coupons', newCoupon);
+      const response = await axios.post('http://localhost:3000/api/cupones', newCoupon); // Update URL to your backend server
       setCoupons([...coupons, response.data]);
     }
 
@@ -68,7 +67,7 @@ const CouponManagement: React.FC = () => {
   };
 
   const handleDeleteCoupon = async (id: number) => {
-    await axios.delete(`/api/coupons/${id}`);
+    await axios.delete(`http://localhost:3000/api/cupones/${id}`); // Update URL to your backend server
     const updatedCoupons = coupons.filter(coupon => coupon.id !== id);
     setCoupons(updatedCoupons);
   };

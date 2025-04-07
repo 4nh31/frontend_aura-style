@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
         localStorage.setItem("token", response.token);
         localStorage.setItem('idUsuario', response.idUsuario.toString());
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('rol', response.role);
+        localStorage.setItem('role', response.role);
         setIsLoggedIn(true);
         setUsername(response.username); // Actualizar el nombre de usuario
         setUserEmail(response.email); // Actualizar el correo electrónico
@@ -52,9 +52,9 @@ const Navbar: React.FC = () => {
         closeLoginModal();
         
         console.log("Rol del usuario:", response.role);
-        if (role === 'admin') {
-          console.log("Abriendo /admin-page en una nueva pestaña");
-          window.open("/admin-page"); // Abre la página de administración en una nueva pestaña
+        if (response.role === 'admin') {
+          console.log("Redirigiendo a /admin-page");
+          navigate("/admin-page"); // Redirige a la página de administración
         } else {
           navigate("/"); // Redirige a la página principal si el usuario es normal
         }
@@ -123,31 +123,6 @@ const Navbar: React.FC = () => {
     setSearchQuery('');
     setSearchResults([]);
   };
-
-  /*const handleRecoverPassword = (event: React.FormEvent) => {
-    event.preventDefault();
-    const success = recoverPassword(recoverEmail);
-    if (success) {
-      alert('Correo de recuperación enviado.');
-      setIsRecoverPasswordModalOpen(false);
-    } else {
-      alert('Correo no encontrado.');
-    }
-  };*/
-
-  /*const handleRecoverPassword = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const response = await requestResetPassword(recoverEmail);
-      alert('📩 Correo de recuperación enviado.');
-      setIsRecoverPasswordModalOpen(false);
-    } catch (error) {
-      alert('⚠️ No se pudo enviar el correo de recuperación.');
-      console.error("Error al solicitar reset:", error);
-    }
-  };*/
-  
-  
 
   const handleManageAccount = () => {
     navigate('/manage-account');
