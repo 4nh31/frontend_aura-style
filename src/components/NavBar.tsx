@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
     }
   };*/
 
-  const handleRecoverPassword = async (event: React.FormEvent) => {
+  /*const handleRecoverPassword = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
       const response = await requestResetPassword(recoverEmail);
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
       alert('⚠️ No se pudo enviar el correo de recuperación.');
       console.error("Error al solicitar reset:", error);
     }
-  };
+  };*/
   
   
 
