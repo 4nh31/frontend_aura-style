@@ -23,10 +23,8 @@ interface Product {
 const Navbar: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isRecoverPasswordModalOpen, setIsRecoverPasswordModalOpen] = useState(false); // Estado para el modal de recuperación de contraseña
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [recoverEmail, setRecoverEmail] = useState(''); // Estado para el correo de recuperación
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const navigate = useNavigate();
@@ -249,7 +247,7 @@ const Navbar: React.FC = () => {
           <button
             onClick={() => {
               closeLoginModal();
-              setIsRecoverPasswordModalOpen(true);
+              navigate('/recover-password');
             }}
             className="text-blue-500 hover:underline"
           >
@@ -262,28 +260,6 @@ const Navbar: React.FC = () => {
             Regístrate
           </a>
         </p>
-      </Modal>
-
-      <Modal
-        isOpen={isRecoverPasswordModalOpen}
-        onRequestClose={() => setIsRecoverPasswordModalOpen(false)}
-        className="modal-style"
-        overlayClassName="overlay-style"
-      >
-        <h2 className="text-2xl font-bold mb-4">Recuperar Contraseña</h2>
-        <form onSubmit={handleRecoverPassword}>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Correo Electrónico</label>
-            <input
-              type="email"
-              value={recoverEmail}
-              onChange={(e) => setRecoverEmail(e.target.value)}
-              className="border px-4 py-2 w-full rounded-md"
-              required
-            />
-          </div>
-          <button type="submit" className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors">Enviar Correo</button>
-        </form>
       </Modal>
 
       <Modal

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import ProductManagement from './ProductManagement';
 import CouponManagement from './CouponManagement';
 import AdminNavBar from './AdminNavBar';

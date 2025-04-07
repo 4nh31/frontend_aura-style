@@ -34,11 +34,11 @@ export function loginUser(email: string, password: string): User | null {
   return user || null;
 }
 
-export function recoverPassword(email: string): boolean {
+export function recoverPassword(email: string, newPassword: string): boolean {
   const user = users.find((u) => u.email === email);
-  // Simulando el envío de un correo de recuperación de contraseña
   if (user) {
-    console.log(`Enviando correo de recuperación a ${email}`);
+    user.password = newPassword;
+    console.log(`Contraseña cambiada para el usuario con correo ${email}`);
     return true;
   }
   return false;

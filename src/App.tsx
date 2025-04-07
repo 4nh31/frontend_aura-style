@@ -6,16 +6,18 @@ import Home from './components/Home';
 import Cart from './components/Cart';
 import ThankYou from './components/ThankYou';
 import Navbar from './components/NavBar';
-import AdminPage from './components/AdminPage'; // Importar la página de administración
-import ProductManagement from './components/ProductManagement'; // Importar el componente de gestión de productos
-import CouponManagement from './components/CouponManagement'; // Importar el componente de gestión de cupones
+import AdminPage from './components/AdminPage'; 
+import ProductManagement from './components/ProductManagement'; 
+import CouponManagement from './components/CouponManagement'; 
 import DetallesProducto from './components/DetallesProducto';
 import ManageAccount from './components/ManageAccount';
 import Catalogo from './components/Catalogo';
-import Footer from './components/Footer'; // Importar el componente Footer
+import Footer from './components/Footer';
+import LogoutPage from './components/LogoutPage';
+import RecoverPasswordPage from './components/RecoverPasswordPage'; // Importar la página de recuperación de contraseña
 
 const AppContent: React.FC = () => {
-  const { isLoggedIn, role, setIsLoggedIn, setRole } = useNavbarContext(); // Usar el hook useNavbarContext
+  const { isLoggedIn, role, setIsLoggedIn, setRole } = useNavbarContext();
   const location = useLocation();
 
   useEffect(() => {
@@ -41,8 +43,10 @@ const AppContent: React.FC = () => {
         <Route path="/producto/:id" element={<><DetallesProducto /><Footer /></>} />
         <Route path="/manage-account" element={<><ManageAccount /><Footer /></>} />
         <Route path="/Catalogo" element={<><Catalogo /><Footer /></>} />
-        <Route path="/admin-page/*" element={<AdminPage />} /> {/* Ruta para AdminPage */}
-        <Route path="*" element={<><Home /><Footer /></>} /> {/* Ruta de respaldo */}
+        <Route path="/admin-page/*" element={<AdminPage />} /> 
+        <Route path="/logout" element={<LogoutPage />} />
+        <Route path="/recover-password" element={<RecoverPasswordPage />} /> {/* Ruta para RecoverPasswordPage */}
+        <Route path="*" element={<><Home /><Footer /></>} /> 
       </Routes>
     </>
   );
