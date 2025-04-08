@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
+import axios from 'axios';
 import { useNavbarContext } from '../contexts/NavbarContext';
+import { getProducts } from '../utils/productUtils';
+import PayPalButton from './PayPalButton';
 
 const Cart: React.FC = () => {
   const { isLoggedIn } = useNavbarContext();
@@ -13,7 +16,7 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedItems = JSON.parse(localStorage.getItem('cart') || '[]');
+    const storedItems = JSON.parse(localStorage.getItem('cart') || '[]') || getProducts().map(product => ({ ...product, quantity: 1 }));
     setItems(storedItems);
   }, []);
 
@@ -42,20 +45,6 @@ const Cart: React.FC = () => {
       setModalMessage('Cupón no válido.');
     }
     setIsModalOpen(true);
-  };
-
-  const handleCheckout = () => {
-    if (!isLoggedIn) {
-      setModalMessage('Debes iniciar sesión para realizar la compra.');
-      setIsModalOpen(true);
-      return;
-    }
-    if (items.length === 0) {
-      setModalMessage('No hay artículos en el carrito.');
-      setIsModalOpen(true);
-      return;
-    }
-    navigate('/gracias', { state: { items, total: discountedTotal } });
   };
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -106,7 +95,7 @@ const Cart: React.FC = () => {
             className="border px-4 py-2 mb-4 w-full rounded-md"
           />
           <button onClick={handleApplyCoupon} className="w-full bg-black text-white py-2 mb-4 rounded-md hover:bg-gray-800 transition-colors">Aplicar Cupón</button>
-          <button onClick={handleCheckout} className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors">Comprar Ahora</button>
+          <PayPalButton items={items} total={discountedTotal} /> {/* Integrar el componente PayPalButton */}
         </div>
       </div>
 
