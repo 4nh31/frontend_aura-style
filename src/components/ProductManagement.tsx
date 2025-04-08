@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { ICategoria } from '../interfaces/ICategoria';
 import { getcategory } from '../services/categoriaService';
-import { createProductoConImagen, getProductos, deleteProduct, updateProducto} from '../services/productService';
+import { createProductoConImagen, getProductos, deleteProduct, updateProducto } from '../services/productService';
 
 interface Product {
   idProducto: number;
@@ -64,8 +63,6 @@ const ProductManagement: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    
-
     const formData = new FormData();
     formData.append('nombre', name);
     formData.append('descripcion', description);
@@ -73,47 +70,45 @@ const ProductManagement: React.FC = () => {
     formData.append('stock', stock as string);
     formData.append('idCategoria', category.toString());
     
-    const imagenes: File[]=[];
-    if (imageMain) imagenes.push, formData.append('imagenes', imageMain);
-    if (imageSecOne) imagenes.push, formData.append('imagenes', imageSecOne);
-    if (imageSecTwo) imagenes.push,formData.append('imagenes', imageSecTwo);
+    if (imageMain) formData.append('imagenes', imageMain);
+    if (imageSecOne) formData.append('imagenes', imageSecOne);
+    if (imageSecTwo) formData.append('imagenes', imageSecTwo);
 
-    if (editingProduct) {
-      const producto = {
-        idProducto: editingProduct.idProducto,
-        nombre: name,
-        descripcion: description,
-        precio: price,
-        stock: stock,
-        idCategoria: category.toString(),
-      };
+    try {
+      if (editingProduct) {
+        const updatedProduct = {
+          idProducto: editingProduct.idProducto,
+          nombre: name,
+          descripcion: description,
+          precio: price,
+          stock: stock,
+          idCategoria: category,
+        };
 
-      const response = await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
-      const updatedProducts = products.map(product =>
-        product.idProducto === editingProduct.idProducto ? response.data : product
-      );
-      setProducts(updatedProducts);
-      setEditingProduct(null);
-    } else {
-      try {
+        const response = await updateProducto(updatedProduct, formData);
+        const updatedProducts = products.map(product =>
+          product.idProducto === editingProduct.idProducto ? response : product
+        );
+        setProducts(updatedProducts);
+        setEditingProduct(null);
+      } else {
+        // Create new product
         const response = await createProductoConImagen(formData);
         setProducts([...products, response]);
-      } catch (error) {
-        console.error("Error al crear producto:", error);
       }
+
+      // Clear the form
+      setName('');
+      setDescription('');
+      setPrice('');
+      setStock('');
+      setImageMain(null);
+      setImageSecOne(null);
+      setImageSecTwo(null);
+    } catch (error) {
+      console.error("Error al manejar el producto:", error);
     }
-
-    // Clear the form
-    setName('');
-    setDescription('');
-    setPrice('');
-    setStock('');
-    setImageMain(null);
-    setImageSecOne(null);
-    setImageSecTwo(null);
   };
-
-
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -136,7 +131,6 @@ const ProductManagement: React.FC = () => {
       console.error('Error al eliminar producto:', error);
     }
   };
-  
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -218,7 +212,7 @@ const ProductManagement: React.FC = () => {
         <div>
           <label className="block text-gray-700 mb-2">Categoría</label>
           <select
-            value={category}
+            value={category || ''}
             onChange={(e) => setCategory(Number(e.target.value))}
             className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
@@ -260,28 +254,34 @@ const ProductManagement: React.FC = () => {
                 <tr key={product.idProducto} className="border-b">
                   <td className="py-2 px-4">
                     {product.imagenPrincipal ? (
-                      product.imagenPrincipal
+                      <img src={product.imagenPrincipal} alt="Imagen Principal" className="h-16 w-16 object-cover"/>
                     ) : (
                       <span className="text-gray-500 italic">Sin imagen</span>
                     )}
                   </td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaUno ? (
-                    product.imagenSecundariaUno
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaDos ? (
-                    product.imagenSecundariaDos
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaUno ? (
+                      <img src={product.imagenSecundariaUno} alt="Imagen Secundaria Uno" className="h-16 w-16 object-cover"/>
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaDos ? (
+                      <img src={product.imagenSecundariaDos} alt="Imagen Secundaria Dos" className="h-16 w-16 object-cover"/>
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
                   <td className="py-2 px-4">{product.nombre}</td>
                   <td className="py-2 px-4">{product.descripcion}</td>
                   <td className="py-2 px-4">${product.precio}</td>
-                  <td className="py-2 px-4">  {
-                    categorias.find(cat => cat.idCategoria === product.idCategoria)?.nombre ||
-                    <span className="text-gray-500 italic">Sin categoría</span>
-                  }</td>
+                  <td className="py-2 px-4">
+                    {
+                      categorias.find(cat => cat.idCategoria === product.idCategoria)?.nombre ||
+                      <span className="text-gray-500 italic">Sin categoría</span>
+                    }
+                  </td>
                   <td className="py-2 px-4">{product.stock}</td>
                   <td className="py-2 px-4">
                     <button
