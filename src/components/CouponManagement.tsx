@@ -14,12 +14,17 @@ const CouponManagement: React.FC = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-       // const response = await axios.get('http://localhost:3000/api/cupones'); // Update URL to your backend server
-       const response = await getCupones()
-        if (Array.isArray(response.data)) {
-          setCoupons(response.data);
+        const response = await getCupones();
+        if (Array.isArray(response)) {
+          const adaptedCoupons = response.map((coupon: any) => ({
+            idCupon: coupon.idCupon,
+            codigo: coupon.codigo,
+            expirationDate: new Date(coupon.fecha_expiracion).toISOString().split('T')[0],
+            discountValue: parseFloat(coupon.valor_descuento),
+          }));
+          setCoupons(adaptedCoupons);
         } else {
-          console.error('Unexpected response format for coupons:', response.data);
+          console.error('Unexpected response format for coupons:', response);
           setCoupons([]);
         }
       } catch (error) {
@@ -27,9 +32,10 @@ const CouponManagement: React.FC = () => {
         setCoupons([]);
       }
     };
-
+  
     fetchCoupons();
   }, []);
+  
 
   const handleAddCoupon = async (event: React.FormEvent) => {
     event.preventDefault();
