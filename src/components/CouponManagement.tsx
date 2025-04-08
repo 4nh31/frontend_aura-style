@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Coupon } from '../interfaces/Coupon';
+import { getCupones, deleteCupon, updateCupon, createCupones } from '../services/cuponesServices';
 
-interface Coupon {
-  id: number;
-  code: string;
-  discount: number;
-}
 
 const CouponManagement: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [couponCode, setCouponCode] = useState('');
-  const [discount, setDiscount] = useState<number | string>('');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [discountValue, setDiscountValue] = useState<number | string>('');
 
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/cupones'); // Update URL to your backend server
+       // const response = await axios.get('http://localhost:3000/api/cupones'); // Update URL to your backend server
+       const response = await getCupones()
         if (Array.isArray(response.data)) {
           setCoupons(response.data);
         } else {
@@ -34,42 +33,52 @@ const CouponManagement: React.FC = () => {
 
   const handleAddCoupon = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (editingCoupon) {
-      const updatedCoupon = {
-        ...editingCoupon,
-        code: couponCode,
-        discount: parseFloat(discount as string),
-      };
-      const response = await axios.put(`http://localhost:3000/api/cupones/${editingCoupon.id}`, updatedCoupon); // Update URL to your backend server
-      const updatedCoupons = coupons.map(coupon =>
-        coupon.id === editingCoupon.id ? response.data : coupon
-      );
-      setCoupons(updatedCoupons);
-      setEditingCoupon(null);
-    } else {
-      const newCoupon = {
-        code: couponCode,
-        discount: parseFloat(discount as string),
-      };
-      const response = await axios.post('http://localhost:3000/api/cupones', newCoupon); // Update URL to your backend server
-      setCoupons([...coupons, response.data]);
-    }
+    const newCoupon = { 
+      codigo: couponCode,
+      expirationDate,
+      discountValue: parseFloat(discountValue as string),
+    };
 
-    // Clear the form
-    setCouponCode('');
-    setDiscount('');
+    try {
+      if (editingCoupon) {
+        //const response = await axios.put(`http://localhost:3000/api/cupones/${editingCoupon.id}`, newCoupon); // Update URL to your backend server
+        const response = await updateCupon(editingCoupon.idCupon, newCoupon)
+        const updatedCoupons = coupons.map(coupon =>
+          coupon.idCupon === editingCoupon.idCupon ? response.data : coupon
+        );
+        setCoupons(updatedCoupons);
+        setEditingCoupon(null);
+      } else {
+        //const response = await axios.post('http://localhost:3000/api/cupones', newCoupon); // Update URL to your backend server
+        const response = await createCupones(newCoupon)
+        setCoupons([...coupons, response.data]);
+      }
+
+      // Clear the form
+      setCouponCode('');
+      setExpirationDate('');
+      setDiscountValue('');
+    } catch (error) {
+      console.error('Error saving coupon:', error);
+    }
   };
 
   const handleEditCoupon = (coupon: Coupon) => {
     setEditingCoupon(coupon);
-    setCouponCode(coupon.code);
-    setDiscount(coupon.discount);
+    setCouponCode(coupon.codigo);
+    setExpirationDate(coupon.expirationDate);
+    setDiscountValue(coupon.discountValue);
   };
 
   const handleDeleteCoupon = async (id: number) => {
-    await axios.delete(`http://localhost:3000/api/cupones/${id}`); // Update URL to your backend server
-    const updatedCoupons = coupons.filter(coupon => coupon.id !== id);
-    setCoupons(updatedCoupons);
+    try {
+      //await axios.delete(`http://localhost:3000/api/cupones/${id}`); // Update URL to your backend server
+      await deleteCupon (id)
+      const updatedCoupons = coupons.filter(coupon => coupon.idCupon !== id);
+      setCoupons(updatedCoupons);
+    } catch (error) {
+      console.error('Error deleting coupon:', error);
+    }
   };
 
   return (
@@ -90,11 +99,21 @@ const CouponManagement: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 mb-2">Descuento (%)</label>
+            <label className="block text-gray-700 mb-2">Fecha de Expiración</label>
+            <input
+              type="date"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-2">Valor del Descuento</label>
             <input
               type="number"
-              value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
+              value={discountValue}
+              onChange={(e) => setDiscountValue(e.target.value)}
               className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -112,15 +131,17 @@ const CouponManagement: React.FC = () => {
             <thead className="bg-gray-800 text-white">
               <tr>
                 <th className="py-2 px-4 text-left">Código</th>
-                <th className="py-2 px-4 text-left">Descuento</th>
+                <th className="py-2 px-4 text-left">Fecha de Expiración</th>
+                <th className="py-2 px-4 text-left">Valor del Descuento</th>
                 <th className="py-2 px-4 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {coupons.map(coupon => (
-                <tr key={coupon.id} className="border-b">
-                  <td className="py-2 px-4">{coupon.code}</td>
-                  <td className="py-2 px-4">{coupon.discount}%</td>
+                <tr key={coupon.idCupon} className="border-b">
+                  <td className="py-2 px-4">{coupon.codigo}</td>
+                  <td className="py-2 px-4">{coupon.expirationDate}</td>
+                  <td className="py-2 px-4">{coupon.discountValue}%</td>
                   <td className="py-2 px-4">
                     <button
                       onClick={() => handleEditCoupon(coupon)}
@@ -129,7 +150,7 @@ const CouponManagement: React.FC = () => {
                       Editar
                     </button>
                     <button
-                      onClick={() => handleDeleteCoupon(coupon.id)}
+                      onClick={() => handleDeleteCoupon(coupon.idCupon  )}
                       className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
                     >
                       Eliminar
