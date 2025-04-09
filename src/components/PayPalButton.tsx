@@ -1,63 +1,74 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loadScript, PayPalNamespace, PayPalScriptOptions } from '@paypal/paypal-js';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';  // Importamos useNavigate
+import axios from 'axios';
 
 interface PayPalButtonProps {
-  items: any[];
+  items: ItemType[];
   total: number;
+  pedidoId: number;
+  descuento: number;
 }
 
-const PayPalButton: React.FC<PayPalButtonProps> = ({ items, total }) => {
-  const navigate = useNavigate();
+type ItemType = {
+  id: number;
+  name: string;
+  size: string;
+  color: string;
+  price: number;
+  quantity: number;
+  image: string;
+};
 
-  useEffect(() => {
-    const scriptOptions: PayPalScriptOptions = {
-      clientId: 'AdA-wwNI0f0uro_TDUEY9HG-LbX0pI32Q4zcp-QmeTkYUBIQvKKR6xg2E02zC99QuBY-eKLJD9cjjhiq',
-      currency: 'MXN'
-    };
+const PayPalButton: React.FC<PayPalButtonProps> = ({ total, pedidoId, items }) => {
+  const navigate = useNavigate();  // Aquí se declara el hook de navegación
 
-    loadScript(scriptOptions).then((paypal: PayPalNamespace | null) => {
-      if (paypal && paypal.Buttons) {
-        paypal.Buttons({
-          createOrder(data: any, actions: any) {
-            if (total <= 0) {
-              throw new Error("El total de la orden debe ser mayor que cero.");
-            }
-            return actions.order.create({
-              intent: 'CAPTURE',
-              purchase_units: [{
-                amount: {
-                  value: total.toFixed(2),
-                  currency_code: 'MXN'
-                }
-              }]
-            });
-          },
-          onApprove(data: any, actions: any) {
-            if (actions.order) {
-              return actions.order.capture().then((details: any) => {
-                navigate('/thank-you', { state: { items, total } });
-              });
-            }
-          },
-          onError(err: any) {
-            console.error('Error en PayPal:', err);
-          }
-        }).render('#paypal-button-container');
+  const handlePago = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Necesitas iniciar sesión para pagar.');
+        return;
       }
-    }).catch((err) => {
-      console.error('Error al cargar el script de PayPal:', err);
-    });
 
-    return () => {
-      const paypalButtonContainer = document.getElementById('paypal-button-container');
-      if (paypalButtonContainer) {
-        paypalButtonContainer.innerHTML = '';
+      // Crear la orden en tu backend
+      const response = await axios.post(
+        'http://localhost:3000/pagos/crear-orden',
+        {
+          total,
+          idPedido: pedidoId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const orderID = response.data.id; // <- Este es el orderID real de PayPal
+
+      // Busca el link de aprobación en la respuesta de PayPal
+      localStorage.setItem('datosPago', JSON.stringify({ items, total, orderID }));
+      const linkAprobacion = response.data.links.find((link: any) => link.rel === 'approve');
+
+      if (linkAprobacion) {
+        // Redirige al usuario a la página de PayPal
+        window.location.href = linkAprobacion.href;
+      } else {
+        throw new Error('No se encontró el link de aprobación de PayPal.');
       }
-    };
-  }, [items, total, navigate]);
+    } catch (error) {
+      console.error('Error al crear la orden de pago:', error);
+      alert('Ocurrió un error al procesar el pago. Inténtalo más tarde.');
+    }
+  };
 
-  return <div id="paypal-button-container" />;
+  return (
+    <button
+      onClick={handlePago}
+      className="w-full bg-yellow-500 text-black py-2 rounded-md hover:bg-yellow-600 transition-colors"
+    >
+      Pagar con PayPal
+    </button>
+  );
 };
 
 export default PayPalButton;

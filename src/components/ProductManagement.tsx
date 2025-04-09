@@ -88,12 +88,18 @@ const ProductManagement: React.FC = () => {
         idCategoria: category.toString(),
       };
 
-      const response = await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
+      /*const response = await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
       const updatedProducts = products.map(product =>
         product.idProducto === editingProduct.idProducto ? response.data : product
-      );
-      setProducts(updatedProducts);
+      );*/
+
+      await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
+        const refreshed = await getProductos();
+        setProducts(refreshed);
+
       setEditingProduct(null);
+
+
     } else {
       try {
         const response = await createProductoConImagen(formData);

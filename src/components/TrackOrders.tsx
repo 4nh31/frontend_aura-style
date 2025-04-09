@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+interface Product {
+  nombre: string;
+  cantidad: number;
+}
 
 interface Order {
   id: number;
-  product: string;
-  date: string;
-  status: string;
-  details: string;
+  fecha: string;
+  estado: string;
+  productos: Product[];
+  detalles: string;
 }
 
-const orders: Order[] = [
-  { id: 1, product: 'Vestido Elegante', date: '2025-04-01', status: 'Enviado', details: 'Pedido realizado el 01-04-2025 a las 14:00. Enviado.' },
-  { id: 2, product: 'Camisa Casual', date: '2025-03-29', status: 'Entregado', details: 'Pedido realizado el 29-03-2025 a las 13:45. Entregado el 01-04-2025.' },
-  { id: 3, product: 'Pantalón de Moda', date: '2025-03-27', status: 'En proceso', details: 'Pedido realizado el 27-03-2025 a las 12:30. En proceso de preparación.' },
-];
-
 const TrackOrders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const userId = localStorage.getItem('userId'); // o del context
+        const response = await axios.get(`http://localhost:3000/api/pedidos/${userId}`);
+        const pedidosPagados = response.data.filter((order: any) => order.estado.toLowerCase() === 'pagado');
+
+        setOrders(pedidosPagados.map((order: any) => ({
+          id: order.idPedido,
+          fecha: order.fecha,
+          estado: order.estado,
+          productos: order.productos, // suponer array de productos
+          detalles: order.detalles || '', // opcional
+        })));
+      } catch (error) {
+        console.error('Error al obtener los pedidos:', error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const toggleDetails = (orderId: number) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
@@ -29,8 +52,7 @@ const TrackOrders: React.FC = () => {
           <thead>
             <tr>
               <th className="py-2 px-4 border-b bg-gray-200">ID</th>
-              <th className="py-2 px-4 border-b bg-gray-200">Producto</th>
-              <th className="py-2 px-4 border-b bg-gray-200">Fecha de Compra</th>
+              <th className="py-2 px-4 border-b bg-gray-200">Fecha</th>
               <th className="py-2 px-4 border-b bg-gray-200">Estado</th>
               <th className="py-2 px-4 border-b bg-gray-200">Acciones</th>
             </tr>
@@ -39,9 +61,8 @@ const TrackOrders: React.FC = () => {
             {orders.map(order => (
               <tr key={order.id} className="text-center hover:bg-gray-100 transition-colors">
                 <td className="py-2 px-4 border-b">{order.id}</td>
-                <td className="py-2 px-4 border-b">{order.product}</td>
-                <td className="py-2 px-4 border-b">{order.date}</td>
-                <td className="py-2 px-4 border-b">{order.status}</td>
+                <td className="py-2 px-4 border-b">{order.fecha}</td>
+                <td className="py-2 px-4 border-b">{order.estado}</td>
                 <td className="py-2 px-4 border-b">
                   <button
                     onClick={() => toggleDetails(order.id)}
@@ -55,10 +76,19 @@ const TrackOrders: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Detalles */}
       {orders.map(order => (
         <div key={order.id} className={`mt-4 p-4 rounded-md shadow-md bg-gray-100 ${expandedOrderId === order.id ? 'block' : 'hidden'}`}>
           <h3 className="text-xl font-bold mb-2">Detalles del Pedido #{order.id}</h3>
-          <p>{order.details}</p>
+          <ul className="list-disc pl-5">
+            {order.productos.map((producto, index) => (
+              <li key={index}>
+                {producto.nombre} (x{producto.cantidad})
+              </li>
+            ))}
+          </ul>
+          {order.detalles && <p className="mt-2 text-sm text-gray-600">{order.detalles}</p>}
         </div>
       ))}
     </div>

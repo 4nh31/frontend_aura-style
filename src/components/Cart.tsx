@@ -13,6 +13,7 @@ const Cart: React.FC = () => {
   const [modalMessage, setModalMessage] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
+  const [pedidoId, setPedidoId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +48,67 @@ const Cart: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleConfirmarPedido = async () => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('idUsuario');
+
+
+  console.log('TOKEN:', token);
+  console.log('USER ID:', userId);
+
+  if (!token || !userId) {
+    setModalMessage('Debes iniciar sesión para hacer un pedido.');
+    setIsModalOpen(true);
+    return;
+  }
+  
+    const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
+    const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
+  
+    let appliedDiscount = 0;
+    let appliedCouponId = null;
+  
+    if (coupon) {
+      appliedDiscount = coupon.discount;
+      appliedCouponId = coupon.id;
+      setDiscount(coupon.discount);
+      setModalMessage('Cupón aplicado exitosamente. Pedido creado.');
+    } else if (couponCode.trim() !== '') {
+      setDiscount(0);
+      setModalMessage('Cupón no válido. Se creará el pedido sin descuento.');
+    } else {
+      setModalMessage('Pedido creado sin cupón.');
+    }
+  
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const discountedTotal = total * (1 - appliedDiscount / 100);
+  
+    const pedidoData = {
+      fecha: new Date().toISOString().split('T')[0],
+      hora: new Date().toTimeString().split(' ')[0],
+      estado: 'Pendiente',
+      total: discountedTotal.toFixed(2),
+      tipo_envio: 'domicilio',
+      idUsuario: userId,
+      idCupon: appliedCouponId
+    };
+  
+    try {
+      const response = await axios.post('http://localhost:3000/pedidos', pedidoData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      const pedidoIdFromBackend = response.data.id;
+      setPedidoId(pedidoIdFromBackend);
+      setIsModalOpen(true);
+    } catch (error: any) {
+      setModalMessage(`Error al realizar el pedido: ${error.response?.data?.error || error.message}`);
+      setIsModalOpen(true);
+    }
+  };
+  
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountedTotal = total * (1 - discount / 100);
 
@@ -95,10 +157,23 @@ const Cart: React.FC = () => {
             className="border px-4 py-2 mb-4 w-full rounded-md"
           />
           <button onClick={handleApplyCoupon} className="w-full bg-black text-white py-2 mb-4 rounded-md hover:bg-gray-800 transition-colors">Aplicar Cupón</button>
-          <PayPalButton items={items} total={discountedTotal} /> {/* Integrar el componente PayPalButton */}
+            {pedidoId ? (
+              <PayPalButton 
+                items={items} 
+                total={discountedTotal} 
+                pedidoId={pedidoId}
+                descuento={discount}
+              />
+          ) : (
+         <button
+            onClick={handleConfirmarPedido}
+            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
+        >
+         Confirmar Pedido
+        </button>
+      )}
         </div>
       </div>
-
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
