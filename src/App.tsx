@@ -10,6 +10,7 @@ import AdminPage from './components/AdminPage';
 import ProductManagement from './components/ProductManagement'; 
 import CouponManagement from './components/CouponManagement'; 
 import DetallesProducto from './components/DetallesProducto';
+import FiltradoProducto from './components/FiltradoProducto';
 import ManageAccount from './components/ManageAccount';
 import Catalogo from './components/Catalogo';
 import Footer from './components/Footer';
@@ -40,7 +41,8 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<><Home /><Footer /></>} />
         <Route path="/cart" element={<><Cart /><Footer /></>} />
         <Route path="/gracias" element={<><ThankYou /><Footer /></>} />
-        <Route path="/producto/:id" element={<><DetallesProducto /><Footer /></>} />
+        <Route path="/detalles-producto" element={<><DetallesProducto /><Footer /></>} />
+        <Route path="/filtrado" element={<><FiltradoProducto /><Footer /></>} />
         <Route path="/manage-account" element={<><ManageAccount /><Footer /></>} />
         <Route path="/Catalogo" element={<><Catalogo /><Footer /></>} />
         <Route path="/admin-page/*" element={<AdminPage />} /> 

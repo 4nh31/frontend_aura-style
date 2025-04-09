@@ -14,4 +14,9 @@ export const getProductos = async () => {
 export const deleteProduct = async (idProducto: number) => {
     return await genericRequest(`/productos/${idProducto}`, 'DELETE', undefined, true);
   };
+
+// Obtener producto por ID
+export const getProductoById = async (idProducto: number) => {
+  return await genericRequest(`/productos/${idProducto}`, "GET", undefined);
+};
   
