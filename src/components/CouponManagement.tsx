@@ -50,7 +50,8 @@ const CouponManagement: React.FC = () => {
         //const response = await axios.put(`http://localhost:3000/api/cupones/${editingCoupon.id}`, newCoupon); // Update URL to your backend server
         const response = await updateCupon(editingCoupon.idCupon, newCoupon)
         const updatedCoupons = coupons.map(coupon =>
-          coupon.idCupon === editingCoupon.idCupon ? response.data : coupon
+          coupon.idCupon === editingCoupon.idCupon ? { ...coupon, ...newCoupon }
+          : coupon
         );
         setCoupons(updatedCoupons);
         setEditingCoupon(null);
