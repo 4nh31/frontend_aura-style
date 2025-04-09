@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ICategoria } from '../interfaces/ICategoria';
 import { getcategory } from '../services/categoriaService';
-import { createProductoConImagen, getProductos, deleteProduct, updateProducto} from '../services/productService';
+import { createProductoConImagen, getProductos, deleteProduct, updateProducto } from '../services/productService';
 
 interface Product {
   idProducto: number;
@@ -64,7 +64,7 @@ const ProductManagement: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    
+
 
     const formData = new FormData();
     formData.append('nombre', name);
@@ -72,12 +72,21 @@ const ProductManagement: React.FC = () => {
     formData.append('precio', price as string);
     formData.append('stock', stock as string);
     formData.append('idCategoria', category.toString());
-    
-    const imagenes: File[]=[];
-    if (imageMain) imagenes.push, formData.append('imagenes', imageMain);
-    if (imageSecOne) imagenes.push, formData.append('imagenes', imageSecOne);
-    if (imageSecTwo) imagenes.push,formData.append('imagenes', imageSecTwo);
 
+    const imagenes: File[] = [];
+    if (imageMain) {
+      imagenes.push(imageMain);
+      formData.append('imagenes', imageMain);
+    }
+    if (imageSecOne) {
+      imagenes.push(imageSecOne);
+      formData.append('imagenes', imageSecOne);
+    }
+    if (imageSecTwo) {
+      imagenes.push(imageSecTwo);
+      formData.append('imagenes', imageSecTwo);
+    }
+    
     if (editingProduct) {
       const producto = {
         idProducto: editingProduct.idProducto,
@@ -94,16 +103,17 @@ const ProductManagement: React.FC = () => {
       );*/
 
       await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
-        const refreshed = await getProductos();
-        setProducts(refreshed);
+      const refreshed = await getProductos();
+      setProducts(refreshed);
 
       setEditingProduct(null);
 
 
     } else {
       try {
-        const response = await createProductoConImagen(formData);
-        setProducts([...products, response]);
+        await createProductoConImagen(formData);
+        const refreshed = await getProductos();
+        setProducts(refreshed);
       } catch (error) {
         console.error("Error al crear producto:", error);
       }
@@ -133,7 +143,7 @@ const ProductManagement: React.FC = () => {
   const handleDeleteProduct = async (idProducto: number) => {
     const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar este producto?');
     if (!confirmDelete) return;
-  
+
     try {
       await deleteProduct(idProducto);
       const updatedProducts = products.filter(product => product.idProducto !== idProducto);
@@ -142,7 +152,7 @@ const ProductManagement: React.FC = () => {
       console.error('Error al eliminar producto:', error);
     }
   };
-  
+
 
   return (
     <div className="container mx-auto px-4 py-6">

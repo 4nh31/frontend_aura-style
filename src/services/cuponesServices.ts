@@ -10,10 +10,10 @@ export const createCupones = async (data: Omit<Coupon, 'idCupon'>) => {
   return response;
 }
 
-export const deleteCupon = async (idCategoria: number) => {
-  return await genericRequest(`/cupones/${idCategoria}`, 'DELETE', undefined, true);
+export const deleteCupon = async (idCupon: number) => {
+  return await genericRequest(`/cupones/${idCupon}`, 'DELETE', undefined, true);
 };
 
-export const updateCupon = async (idCategoria: number, data: Omit<Coupon, 'idCupon'>) => {
-  return await genericRequest(`/cupones/${idCategoria}`, 'PUT', data, true);
+export const updateCupon = async (idCupon: number, data: Omit<Coupon, 'idCupon'>) => {
+  return await genericRequest(`/cupones/${idCupon}`, 'PUT', data, true);
 };
