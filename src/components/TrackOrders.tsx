@@ -4,41 +4,77 @@ import axios from 'axios';
 interface Product {
   nombre: string;
   cantidad: number;
+  precio: number; // Asegúrate de tener el precio en cada producto
 }
 
-interface Order {
+interface pedidos {
   id: number;
   fecha: string;
   estado: string;
   productos: Product[];
   detalles: string;
+  total: number; // Para el total del pedido
 }
 
 const TrackOrders: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<pedidos[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const userId = localStorage.getItem('userId'); // o del context
-        const response = await axios.get(`http://localhost:3000/api/pedidos/${userId}`);
-        const pedidosPagados = response.data.filter((order: any) => order.estado.toLowerCase() === 'pagado');
-
-        setOrders(pedidosPagados.map((order: any) => ({
+        const idUsuario = localStorage.getItem('idUsuario');
+        const token = localStorage.getItem('token'); // Obtén el token de localStorage o contexto
+   
+        const response = await axios.get(`http://localhost:3000/pedidos/${idUsuario}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Enviar el token como Bearer
+          },
+        });
+   
+        // Filtrar solo los pedidos realizados por el usuario
+        const pedidosDelUsuario = response.data.filter((order: any) => order.usuario_id === parseInt(idUsuario!));
+  
+        // Filtrar solo los pedidos con estado 'pagado'
+        const pedidosPagados = pedidosDelUsuario.filter((order: any) => order.estado.toLowerCase() === 'pagado');
+  
+        // Mapear los datos para estructurarlos en el formato correcto
+        const mappedOrders = pedidosPagados.map((order: any) => ({
           id: order.idPedido,
           fecha: order.fecha,
           estado: order.estado,
-          productos: order.productos, // suponer array de productos
-          detalles: order.detalles || '', // opcional
-        })));
+          productos: order.productos,
+          detalles: order.detalles || '',
+          total: order.total,
+        }));
+  
+        // Establecer solo los pedidos obtenidos de la API, sin agregar duplicados
+        setOrders(mappedOrders);
       } catch (error) {
         console.error('Error al obtener los pedidos:', error);
       }
     };
-
+  
+    // Esto es para obtener los datos guardados en el localStorage (por ejemplo, del pedido actual)
+    const storedData = localStorage.getItem('datosPago');
+    if (storedData) {
+      const { items, total, orderID } = JSON.parse(storedData);
+      setOrders(prevOrders => [
+        ...prevOrders.filter(order => order.id !== orderID), // Evitar duplicados
+        {
+          id: orderID,
+          fecha: new Date().toLocaleDateString(), // Asumiendo que la fecha actual es la del pedido
+          estado: 'Pagado', // Estado simulado
+          productos: items,
+          detalles: 'Detalles del pedido realizados correctamente',
+          total: total,
+        }
+      ]);
+    }
+  
     fetchOrders();
   }, []);
+  
 
   const toggleDetails = (orderId: number) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
@@ -46,7 +82,7 @@ const TrackOrders: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">Seguimiento de Productos Comprados</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">Seguimiento de Pedidos</h2>
       <div className="flex justify-center">
         <table className="min-w-full max-w-4xl bg-white border rounded-md shadow-md">
           <thead>
@@ -77,18 +113,19 @@ const TrackOrders: React.FC = () => {
         </table>
       </div>
 
-      {/* Detalles */}
+      {/* Detalles del pedido */}
       {orders.map(order => (
         <div key={order.id} className={`mt-4 p-4 rounded-md shadow-md bg-gray-100 ${expandedOrderId === order.id ? 'block' : 'hidden'}`}>
           <h3 className="text-xl font-bold mb-2">Detalles del Pedido #{order.id}</h3>
           <ul className="list-disc pl-5">
             {order.productos.map((producto, index) => (
-              <li key={index}>
-                {producto.nombre} (x{producto.cantidad})
+              <li key={producto.nombre + index}>
+                {producto.nombre} (x{producto.cantidad}) - ${producto.precio * producto.cantidad}
               </li>
             ))}
           </ul>
-          {order.detalles && <p className="mt-2 text-sm text-gray-600">{order.detalles}</p>}
+          <p className="mt-2 text-sm text-gray-600">Detalles: {order.detalles}</p>
+          <p className="mt-2 text-lg font-bold text-gray-900">Total: ${order.total.toFixed(2)}</p>
         </div>
       ))}
     </div>

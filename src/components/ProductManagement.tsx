@@ -86,7 +86,7 @@ const ProductManagement: React.FC = () => {
       imagenes.push(imageSecTwo);
       formData.append('imagenes', imageSecTwo);
     }
-    
+
     if (editingProduct) {
       const producto = {
         idProducto: editingProduct.idProducto,
@@ -276,21 +276,39 @@ const ProductManagement: React.FC = () => {
                 <tr key={product.idProducto} className="border-b">
                   <td className="py-2 px-4">
                     {product.imagenPrincipal ? (
-                      product.imagenPrincipal
+                      <img
+                        src={`http://localhost:3000${product.imagenPrincipal}`}
+                        alt="Imagen del producto"
+                        className="w-16 h-16 object-cover rounded"
+                      />
                     ) : (
                       <span className="text-gray-500 italic">Sin imagen</span>
                     )}
                   </td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaUno ? (
-                    product.imagenSecundariaUno
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaDos ? (
-                    product.imagenSecundariaDos
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaUno ? (
+                      <img
+                        src={`http://localhost:3000${product.imagenSecundariaUno}`}
+                        alt="Imagen secundaria uno"
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
+
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaDos ? (
+                      <img
+                        src={`http://localhost:3000${product.imagenSecundariaDos}`}
+                        alt="Imagen secundaria dos"
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
+
                   <td className="py-2 px-4">{product.nombre}</td>
                   <td className="py-2 px-4">{product.descripcion}</td>
                   <td className="py-2 px-4">${product.precio}</td>

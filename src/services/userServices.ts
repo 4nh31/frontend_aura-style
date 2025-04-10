@@ -3,7 +3,6 @@ import { ILogin } from "../interfaces/ILogin";
 import { IRegister } from "../interfaces/IRegister";
 
 export const login = async (data: ILogin) => {
-  // Cambiar el endpoint a /auth/login
   const response = await genericRequest('/usuarios/login', 'POST', data);
   return response;
 }
