@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavbarContext } from '../contexts/NavbarContext';
 import { getProducts } from '../utils/productUtils';
 import PayPalButton from './PayPalButton';
+import { getCupones } from '../services/cuponesServices';
 
 const Cart: React.FC = () => {
   const { isLoggedIn } = useNavbarContext();
@@ -15,10 +16,20 @@ const Cart: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const [cuponesDisponibles, setCuponesDisponibles] = useState<any[]>([]);
+
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem('cart') || '[]') || getProducts().map(product => ({ ...product, quantity: 1 }));
     setItems(storedItems);
+
+
+    getCupones().then((data) => {
+      setCuponesDisponibles(data);
+    }).catch((err) => {
+      console.error('Error al cargar cupones:', err);
+    });
+
   }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {
@@ -35,7 +46,7 @@ const Cart: React.FC = () => {
     localStorage.setItem('cart', JSON.stringify(updatedItems));
   };
 
-  const handleApplyCoupon = () => {
+ /* const handleApplyCoupon = () => {
     const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
     const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
     if (coupon) {
@@ -46,7 +57,32 @@ const Cart: React.FC = () => {
       setModalMessage('Cupón no válido.');
     }
     setIsModalOpen(true);
+  };*/
+
+  const handleApplyCoupon = () => {
+    const coupon = cuponesDisponibles.find((c) => c.codigo === couponCode);
+  
+    if (!coupon) {
+      setDiscount(0);
+      setModalMessage('Cupón no válido.');
+      setIsModalOpen(true);
+      return;
+    }
+  
+    const hoy = new Date();
+    const fechaExpiracion = new Date(coupon.fecha_expiracion);
+  
+    if (fechaExpiracion < hoy) {
+      setDiscount(0);
+      setModalMessage('Cupón expirado.');
+    } else {
+      setDiscount(parseFloat(coupon.valor_descuento));
+      setModalMessage('¡Cupón aplicado correctamente!');
+    }
+  
+    setIsModalOpen(true);
   };
+  
 
   const handleConfirmarPedido = async () => {
     const token = localStorage.getItem('token');
@@ -62,15 +98,14 @@ const Cart: React.FC = () => {
     return;
   }
   
-    const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
-    const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
+  const coupon = cuponesDisponibles.find(c => c.codigo === couponCode);
   
     let appliedDiscount = 0;
     let appliedCouponId = null;
   
     if (coupon) {
       appliedDiscount = coupon.discount;
-      appliedCouponId = coupon.id;
+      appliedCouponId = coupon.idCupon;
       setDiscount(coupon.discount);
       setModalMessage('Cupón aplicado exitosamente. Pedido creado.');
     } else if (couponCode.trim() !== '') {

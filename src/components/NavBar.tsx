@@ -191,7 +191,7 @@ const Navbar: React.FC = () => {
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
                   <button onClick={handleManageAccount} className="block w-full text-left px-4 py-2 hover:bg-gray-200 transition-colors">Gestionar Cuenta</button>
-                  <button onClick={handleTrackOrders} className="block w-full text-left px-4 py-2 hover:bg-gray-200 transition-colors">Ver seguimiento de mis productos</button>
+                  <button onClick={handleTrackOrders} className="block w-full text-left px-4 py-2 hover:bg-gray-200 transition-colors">Ver seguimiento de mis pedidos</button>
                   <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-black hover:text-white hover:bg-red-600 transition-colors">Cerrar Sesión</button>
                 </div>
               )}

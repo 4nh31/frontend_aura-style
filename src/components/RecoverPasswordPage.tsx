@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { resetPassword } from '../services/userServices';
 
 const RecoverPasswordPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
+  const {token} = useParams();
   const navigate = useNavigate();
+  
 
   const handleRecoverPassword = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -16,11 +19,13 @@ const RecoverPasswordPage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/recover-password', {
+     /* const response = await axios.post('http://localhost:3000/api/recover-password', {
         newPassword
-      });
+      });*/
 
-      if (response.data.success) {
+      const response = await resetPassword(newPassword, token ?? '')
+
+      if (response) {
         alert('Contraseña cambiada exitosamente.');
         navigate('/'); // Redirige a la página principal
       } else {
