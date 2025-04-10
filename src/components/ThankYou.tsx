@@ -1,14 +1,58 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const ThankYou: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { items, total } = location.state || { items: [], total: 0 };
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [orderID, setOrderID] = useState('');
 
-  const handleSendTicket = () => {
-    alert('Ticket electrónico enviado por correo.');
+  useEffect(() => {
+    const datos = localStorage.getItem('datosPago');
+    if (datos) {
+      const { items, total, orderID } = JSON.parse(datos);
+      setItems(items);
+      setTotal(total);
+      setOrderID(orderID); // 👈
+    } else {
+      navigate('/');
+    }
+  }, []);
+  
+
+
+  const handleSendTicket = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Token no encontrado, inicia sesión nuevamente.');
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:3000/pagos/capturar/${orderID}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert('✅ Ticket enviado correctamente por correo.');
+      } else {
+        console.error('❌ Error al reenviar el ticket:', data.error);
+        alert(`❌ Error al reenviar el ticket: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Error en la petición:', error);
+      alert('❌ Error al conectar con el servidor.');
+    }
   };
+  
+  
 
   const handleGoHome = () => {
     navigate('/');
@@ -27,6 +71,7 @@ const ThankYou: React.FC = () => {
             </li>
           ))}
         </ul>
+        {/* Muestra el total del pedido */}
         <p className="font-bold text-xl mb-4 text-gray-900">Total Pagado: ${total.toFixed(2)}</p>
         <button 
           onClick={handleSendTicket} 

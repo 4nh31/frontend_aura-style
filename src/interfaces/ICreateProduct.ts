@@ -1,7 +1,7 @@
 export interface ICreateProduct{
     nombre: string;
     descripcion: string;
-    precio_costo: number;
-    precio_venta: number;
+    precio: number;
     stock: number;
+    idCategoria: number;
 }

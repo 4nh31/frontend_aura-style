@@ -15,7 +15,8 @@ import ManageAccount from './components/ManageAccount';
 import Catalogo from './components/Catalogo';
 import Footer from './components/Footer';
 import LogoutPage from './components/LogoutPage';
-import RecoverPasswordPage from './components/RecoverPasswordPage'; // Importar la página de recuperación de contraseña
+import RecoverPasswordPage from './components/RecoverPasswordPage';
+import TrackOrders from './components/TrackOrders'; // Importar la nueva vista de seguimiento de productos
 
 const AppContent: React.FC = () => {
   const { isLoggedIn, role, setIsLoggedIn, setRole } = useNavbarContext();
@@ -47,7 +48,9 @@ const AppContent: React.FC = () => {
         <Route path="/Catalogo" element={<><Catalogo /><Footer /></>} />
         <Route path="/admin-page/*" element={<AdminPage />} /> 
         <Route path="/logout" element={<LogoutPage />} />
-        <Route path="/recover-password" element={<RecoverPasswordPage />} /> {/* Ruta para RecoverPasswordPage */}
+        <Route path="/recover-password" element={<RecoverPasswordPage />} />
+        <Route path="/track-orders" element={<TrackOrders />} /> {/* Ruta para la nueva vista de seguimiento de productos */}
+        <Route path="/thank-you" element={<ThankYou />} /> {/* Ruta para la página de agradecimiento */}
         <Route path="*" element={<><Home /><Footer /></>} /> 
       </Routes>
     </>

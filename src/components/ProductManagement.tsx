@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ICategoria } from '../interfaces/ICategoria';
 import { getcategory } from '../services/categoriaService';
-import { createProductoConImagen, getProductos } from '../services/productService';
+import { createProductoConImagen, getProductos, deleteProduct, updateProducto } from '../services/productService';
 
 interface Product {
-  id: number;
+  idProducto: number;
   nombre: string;
   descripcion: string;
   precio: number;
@@ -64,6 +64,8 @@ const ProductManagement: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent) => {
     event.preventDefault();
 
+
+
     const formData = new FormData();
     formData.append('nombre', name);
     formData.append('descripcion', description);
@@ -71,25 +73,47 @@ const ProductManagement: React.FC = () => {
     formData.append('stock', stock as string);
     formData.append('idCategoria', category.toString());
 
-    if (imageMain) formData.append('imagenes', imageMain);
-    if (imageSecOne) formData.append('imagenes', imageSecOne);
-    if (imageSecTwo) formData.append('imagenes', imageSecTwo);
+    const imagenes: File[] = [];
+    if (imageMain) {
+      imagenes.push(imageMain);
+      formData.append('imagenes', imageMain);
+    }
+    if (imageSecOne) {
+      imagenes.push(imageSecOne);
+      formData.append('imagenes', imageSecOne);
+    }
+    if (imageSecTwo) {
+      imagenes.push(imageSecTwo);
+      formData.append('imagenes', imageSecTwo);
+    }
 
     if (editingProduct) {
-      const response = await axios.put(`/api/products/${editingProduct.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const producto = {
+        idProducto: editingProduct.idProducto,
+        nombre: name,
+        descripcion: description,
+        precio: price,
+        stock: stock,
+        idCategoria: category.toString(),
+      };
+
+      /*const response = await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
       const updatedProducts = products.map(product =>
-        product.id === editingProduct.id ? response.data : product
-      );
-      setProducts(updatedProducts);
+        product.idProducto === editingProduct.idProducto ? response.data : product
+      );*/
+
+      await updateProducto(producto, imagenes.length === 3 ? imagenes : undefined);
+      const refreshed = await getProductos();
+      setProducts(refreshed);
+
       setEditingProduct(null);
+
+
     } else {
       try {
-        const response = await createProductoConImagen(formData);
-        setProducts([...products, response]);
+        await createProductoConImagen(formData);
+        const refreshed = await getProductos();
+        setProducts(refreshed);
       } catch (error) {
         console.error("Error al crear producto:", error);
       }
@@ -116,11 +140,19 @@ const ProductManagement: React.FC = () => {
     setCategory(product.idCategoria);
   };
 
-  const handleDeleteProduct = async (id: number) => {
-    await axios.delete(`/api/products/${id}`);
-    const updatedProducts = products.filter(product => product.id !== id);
-    setProducts(updatedProducts);
+  const handleDeleteProduct = async (idProducto: number) => {
+    const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar este producto?');
+    if (!confirmDelete) return;
+
+    try {
+      await deleteProduct(idProducto);
+      const updatedProducts = products.filter(product => product.idProducto !== idProducto);
+      setProducts(updatedProducts);
+    } catch (error) {
+      console.error('Error al eliminar producto:', error);
+    }
   };
+
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -146,7 +178,7 @@ const ProductManagement: React.FC = () => {
               accept=".png"
               onChange={(e) => setImageMain(e.target.files ? e.target.files[0] : null)}
               className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              required={!editingProduct}
             />
           </div>
           <div>
@@ -156,7 +188,7 @@ const ProductManagement: React.FC = () => {
               accept=".png"
               onChange={(e) => setImageSecOne(e.target.files ? e.target.files[0] : null)}
               className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              required={!editingProduct}
             />
           </div>
           <div>
@@ -166,7 +198,7 @@ const ProductManagement: React.FC = () => {
               accept=".png"
               onChange={(e) => setImageSecTwo(e.target.files ? e.target.files[0] : null)}
               className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              required={!editingProduct}
             />
           </div>
         </div>
@@ -241,24 +273,42 @@ const ProductManagement: React.FC = () => {
             </thead>
             <tbody>
               {products.map(product => (
-                <tr key={product.id} className="border-b">
+                <tr key={product.idProducto} className="border-b">
                   <td className="py-2 px-4">
                     {product.imagenPrincipal ? (
-                      product.imagenPrincipal
+                      <img
+                        src={`http://localhost:3000${product.imagenPrincipal}`}
+                        alt="Imagen del producto"
+                        className="w-16 h-16 object-cover rounded"
+                      />
                     ) : (
                       <span className="text-gray-500 italic">Sin imagen</span>
                     )}
                   </td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaUno ? (
-                    product.imagenSecundariaUno
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
-                  <td className="py-2 px-4">  {product.imagenSecundariaDos ? (
-                    product.imagenSecundariaDos
-                  ) : (
-                    <span className="text-gray-500 italic">Sin imagen</span>
-                  )}</td>
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaUno ? (
+                      <img
+                        src={`http://localhost:3000${product.imagenSecundariaUno}`}
+                        alt="Imagen secundaria uno"
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
+
+                  <td className="py-2 px-4">
+                    {product.imagenSecundariaDos ? (
+                      <img
+                        src={`http://localhost:3000${product.imagenSecundariaDos}`}
+                        alt="Imagen secundaria dos"
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-gray-500 italic">Sin imagen</span>
+                    )}
+                  </td>
+
                   <td className="py-2 px-4">{product.nombre}</td>
                   <td className="py-2 px-4">{product.descripcion}</td>
                   <td className="py-2 px-4">${product.precio}</td>
@@ -275,7 +325,7 @@ const ProductManagement: React.FC = () => {
                       Editar
                     </button>
                     <button
-                      onClick={() => handleDeleteProduct(product.id)}
+                      onClick={() => handleDeleteProduct(product.idProducto)}
                       className="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-700 transition-colors"
                     >
                       Eliminar

@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
         localStorage.setItem("token", response.token);
         localStorage.setItem('idUsuario', response.idUsuario.toString());
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('rol', response.role);
+        localStorage.setItem('role', response.role);
         setIsLoggedIn(true);
         setUsername(response.username); // Actualizar el nombre de usuario
         setUserEmail(response.email); // Actualizar el correo electrónico
@@ -52,9 +52,9 @@ const Navbar: React.FC = () => {
         closeLoginModal();
         
         console.log("Rol del usuario:", response.role);
-        if (role === 'admin') {
-          console.log("Abriendo /admin-page en una nueva pestaña");
-          window.open("/admin-page"); // Abre la página de administración en una nueva pestaña
+        if (response.role === 'admin') {
+          console.log("Redirigiendo a /admin-page");
+          navigate("/admin-page"); // Redirige a la página de administración
         } else {
           navigate("/"); // Redirige a la página principal si el usuario es normal
         }
@@ -124,33 +124,13 @@ const Navbar: React.FC = () => {
     setSearchResults([]);
   };
 
-  /*const handleRecoverPassword = (event: React.FormEvent) => {
-    event.preventDefault();
-    const success = recoverPassword(recoverEmail);
-    if (success) {
-      alert('Correo de recuperación enviado.');
-      setIsRecoverPasswordModalOpen(false);
-    } else {
-      alert('Correo no encontrado.');
-    }
-  };*/
-
-  /*const handleRecoverPassword = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const response = await requestResetPassword(recoverEmail);
-      alert('📩 Correo de recuperación enviado.');
-      setIsRecoverPasswordModalOpen(false);
-    } catch (error) {
-      alert('⚠️ No se pudo enviar el correo de recuperación.');
-      console.error("Error al solicitar reset:", error);
-    }
-  };*/
-  
-  
-
   const handleManageAccount = () => {
     navigate('/manage-account');
+    setIsDropdownOpen(false);
+  };
+
+  const handleTrackOrders = () => {
+    navigate('/track-orders');
     setIsDropdownOpen(false);
   };
 
@@ -201,8 +181,9 @@ const Navbar: React.FC = () => {
               </button>
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
-                  <button onClick={handleManageAccount} className="block w-full text-left px-4 py-2 hover:bg-gray-200">Gestionar Cuenta</button>
-                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-200">Cerrar Sesión</button>
+                  <button onClick={handleManageAccount} className="block w-full text-left px-4 py-2 hover:bg-gray-200 transition-colors">Gestionar Cuenta</button>
+                  <button onClick={handleTrackOrders} className="block w-full text-left px-4 py-2 hover:bg-gray-200 transition-colors">Ver seguimiento de mis pedidos</button>
+                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-black hover:text-white hover:bg-red-600 transition-colors">Cerrar Sesión</button>
                 </div>
               )}
             </div>
@@ -326,6 +307,10 @@ const Navbar: React.FC = () => {
           bottom: 0;
           background: rgba(0, 0, 0, 0.5);
           z-index: 999;
+        }
+
+        .transition-colors {
+          transition: background-color 0.3s, color 0.3s;
         }
       `}</style>
     </nav>
