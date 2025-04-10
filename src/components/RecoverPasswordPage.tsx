@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const RecoverPasswordPage: React.FC = () => {
-  const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ const RecoverPasswordPage: React.FC = () => {
 
     try {
       const response = await axios.post('http://localhost:3000/api/recover-password', {
-        email,
         newPassword
       });
 
@@ -26,7 +24,7 @@ const RecoverPasswordPage: React.FC = () => {
         alert('Contraseña cambiada exitosamente.');
         navigate('/'); // Redirige a la página principal
       } else {
-        alert('Error al cambiar la contraseña. Verifica tu correo electrónico.');
+        alert('Error al cambiar la contraseña. Por favor, intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error al cambiar la contraseña:', error);
@@ -39,16 +37,6 @@ const RecoverPasswordPage: React.FC = () => {
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
         <h2 className="text-3xl font-bold text-center mb-6">Recuperar Contraseña</h2>
         <form onSubmit={handleRecoverPassword} className="space-y-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Correo Electrónico</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border px-4 py-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Nueva Contraseña</label>
             <input
