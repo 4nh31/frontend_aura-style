@@ -11,6 +11,10 @@ const DetallesProducto: React.FC = () => {
   const [producto, setProducto] = useState<IProducto | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const handleClick = () => {
+    navigate("/cart");
+  };
+
   // Efecto para obtener los datos del producto cuando se carga el componente
   useEffect(() => {
     if (idProductoRecibido) {
@@ -64,7 +68,7 @@ const DetallesProducto: React.FC = () => {
             <strong>Tamaño:</strong> {producto.tamaño}
           </p>
           <button
-            onClick={() => alert("Producto agregado al carrito.")}
+            onClick={handleClick}
             className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
           >
             Agregar al Carrito
