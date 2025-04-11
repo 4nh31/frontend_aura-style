@@ -38,8 +38,8 @@ const CardCarritoProducto: React.FC<CardCarritoProductoProps> = ({
   return (
     <div className="flex items-center justify-between border-b py-4">
       <img
-        src={imagenPrincipal}
-        alt={nombre}
+      src={`http://localhost:3000${imagenPrincipal}`}
+      alt={nombre}
         className="w-16 h-16 object-cover rounded-md"
       />
       <div className="flex-1 ml-4">

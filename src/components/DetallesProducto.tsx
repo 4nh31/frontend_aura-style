@@ -39,7 +39,7 @@ const DetallesProducto: React.FC = () => {
       <h1 className="text-3xl font-bold mb-4">{nombre}</h1>
       <div className="flex">
         <img
-          src={imagenPrincipal}
+          src={`http://localhost:3000${imagenPrincipal}`}
           alt={nombre}
           className="w-1/2 h-auto object-cover rounded-md shadow-md"
         />
