@@ -196,6 +196,32 @@ const Cart: React.FC = () => {
           <p className="font-bold text-lg mb-4">
             Total: ${carrito.total.toFixed(2)}
           </p>
+          {discount > 0 && <p className="font-bold text-lg mb-4">Descuento: -{discount}%</p>}
+          <p className="font-bold text-lg mb-4">Total con Descuento: ${discountedTotal.toFixed(2)}</p>
+          <input
+            type="text"
+            placeholder="Código de Cupón"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            className="border px-4 py-2 mb-4 w-full rounded-md"
+          />
+          <button onClick={handleApplyCoupon} className="w-full bg-black text-white py-2 mb-4 rounded-md hover:bg-gray-800 transition-colors">Aplicar Cupón</button>
+            {pedidoId ? (
+              <PayPalButton 
+                items={items} 
+                total={discountedTotal} 
+                pedidoId={pedidoId}
+                descuento={discount}
+              />
+          ) : (
+         <button
+            onClick={handleConfirmarPedido}
+            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
+        >
+         Confirmar Pedido
+        </button>
+      )}
+
         </div>
       </div>
     </div>
