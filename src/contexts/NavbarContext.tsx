@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// Definición de las propiedades del contexto, incluidas las funciones para manejar el estado
 interface NavbarContextProps {
   isLoginModalOpen: boolean;
   isLoggedIn: boolean;
@@ -12,8 +13,10 @@ interface NavbarContextProps {
   setUsername: (username: string | null) => void;
   setEmail: (email: string | null) => void;
   setRole: (role: string | null) => void;
+  logout: () => void; // Nueva función para manejar el cierre de sesión global
 }
 
+// Contexto inicial con valores por defecto
 const NavbarContext = createContext<NavbarContextProps>({
   isLoginModalOpen: false,
   isLoggedIn: false,
@@ -26,16 +29,19 @@ const NavbarContext = createContext<NavbarContextProps>({
   setUsername: () => {},
   setEmail: () => {},
   setRole: () => {},
+  logout: () => {}, // Función vacía por defecto
 });
 
+// Hook para usar el contexto en otros componentes
 export const useNavbarContext = () => useContext(NavbarContext);
 
 interface NavbarProviderProps {
   children: ReactNode;
 }
 
+// Proveedor del contexto para envolver la aplicación
 export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
-  // Inicializar desde localStorage
+  // Estados inicializados desde localStorage
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
@@ -70,8 +76,27 @@ export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
     else localStorage.removeItem('role');
   }, [role]);
 
+  // Abrir el modal de inicio de sesión
   const openLoginModal = () => setIsLoginModalOpen(true);
+
+  // Cerrar el modal de inicio de sesión
   const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  // Función para manejar el cierre de sesión global
+  const logout = () => {
+    setIsLoggedIn(false);
+    setUsername(null);
+    setEmail(null);
+    setRole(null);
+
+    // Limpiar el almacenamiento local
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    localStorage.removeItem('role');
+    localStorage.removeItem('token'); // Si tienes un token de autenticación
+    localStorage.removeItem('idUsuario'); // Si guardas el ID del usuario
+  };
 
   return (
     <NavbarContext.Provider
@@ -87,6 +112,7 @@ export const NavbarProvider: React.FC<NavbarProviderProps> = ({ children }) => {
         setUsername,
         setEmail,
         setRole,
+        logout, // Proveer la función de logout al contexto
       }}
     >
       {children}

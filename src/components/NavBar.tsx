@@ -22,6 +22,7 @@ interface Product {
 
 const Navbar: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isRecoverPasswordModalOpen, setIsRecoverPasswordModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,31 +33,27 @@ const Navbar: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
     try {
       const data: ILogin = { email, password };
       const response = await login(data);
-  
+
       if (response) {
         console.log("Login exitoso:", response);
-        
-        // Guardar token y estado de autenticación en localStorage
+
         localStorage.setItem("token", response.token);
         localStorage.setItem('idUsuario', response.idUsuario.toString());
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('role', response.role);
         setIsLoggedIn(true);
-        setUsername(response.username); // Actualizar el nombre de usuario
-        setUserEmail(response.email); // Actualizar el correo electrónico
-        setRole(response.role); // Actualizar el rol del usuario
+        setUsername(response.username);
+        setUserEmail(response.email);
+        setRole(response.role);
         closeLoginModal();
-        
-        console.log("Rol del usuario:", response.role);
+
         if (response.role === 'admin') {
-          console.log("Redirigiendo a /admin-page");
-          navigate("/admin-page"); // Redirige a la página de administración
+          navigate("/admin-page");
         } else {
-          navigate("/"); // Redirige a la página principal si el usuario es normal
+          navigate("/");
         }
       } else {
         alert("Credenciales incorrectas");
@@ -69,17 +66,17 @@ const Navbar: React.FC = () => {
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
-  
+
     try {
       const newUser: IRegister = {
         nombre: username ?? "",
         email,
         password,
-        telefono: null,  // Se envía como null
-        direccion: null, // Se envía como null
-        rol: "usuario"  // Se envía como usuario por defecto
+        telefono: null,
+        direccion: null,
+        rol: "usuario"
       };
-      const response = await register(newUser);  
+      const response = await register(newUser);
       if (response) {
         console.log("Registro exitoso:", response);
         setIsRegisterModalOpen(false);
@@ -90,8 +87,23 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const handleRecoverPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    try {
+      const response = await requestResetPassword(email);
+      if (response) {
+        console.log("Solicitud de recuperación enviada:", response);
+        setIsRecoverPasswordModalOpen(false);
+        alert("Se ha enviado un correo para restablecer tu contraseña. Por favor, revisa tu bandeja de entrada.");
+      }
+    } catch (error) {
+      console.error("Error al solicitar la recuperación de contraseña:", error);
+      alert("Error al enviar la solicitud. Por favor, intenta de nuevo.");
+    }
+  };
+
   const handleLogout = () => {
-    console.log("Cerrando sesión y eliminando datos de localStorage");
     setIsLoggedIn(false);
     setUsername(null);
     setUserEmail(null);
@@ -103,15 +115,14 @@ const Navbar: React.FC = () => {
     localStorage.removeItem('idUsuario');
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('role');
-    navigate("/"); // Redirige a la página de inicio en lugar de "/login"
+    navigate("/");
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
     setSearchQuery(query);
     if (query.length > 0) {
-      // Aquí iría la lógica para buscar productos
-      const results: Product[] = []; // Reemplazar con lógica de búsqueda
+      const results: Product[] = [];
       setSearchResults(results);
     } else {
       setSearchResults([]);
@@ -137,12 +148,10 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-md py-3 rounded-md relative">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo */}
         <div className="text-2xl font-bold flex items-center space-x-2">
           <img src={logo} alt="Aura-style Logo" className="h-10" />
           <span>Aura-style</span>
         </div>
-        {/* Links */}
         <div className="flex space-x-6 items-center flex-grow justify-center">
           <Link to="/" className="hover:text-gray-700 transition-colors">Inicio</Link>
           <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Catalogo</Link>
@@ -228,7 +237,7 @@ const Navbar: React.FC = () => {
           <button
             onClick={() => {
               closeLoginModal();
-              navigate('/recover-password');
+              setIsRecoverPasswordModalOpen(true);
             }}
             className="text-blue-500 hover:underline"
           >
@@ -241,6 +250,28 @@ const Navbar: React.FC = () => {
             Regístrate
           </a>
         </p>
+      </Modal>
+
+      <Modal
+        isOpen={isRecoverPasswordModalOpen}
+        onRequestClose={() => setIsRecoverPasswordModalOpen(false)}
+        className="modal-style"
+        overlayClassName="overlay-style"
+      >
+        <h2 className="text-2xl font-bold mb-4">Recuperar Contraseña</h2>
+        <form onSubmit={handleRecoverPassword}>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Correo Electrónico</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border px-4 py-2 w-full rounded-md"
+              required
+            />
+          </div>
+          <button type="submit" className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors">Enviar Solicitud</button>
+        </form>
       </Modal>
 
       <Modal
