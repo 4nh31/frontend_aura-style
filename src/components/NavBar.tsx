@@ -6,19 +6,11 @@ import { useNavbarContext } from '../contexts/NavbarContext';
 import { ILogin } from '../interfaces/ILogin';
 import { login, register, requestResetPassword } from '../services/userServices';
 import { IRegister } from '../interfaces/IRegister';
+import SearchBar from './SearchBar'; // Importamos el nuevo buscador
+import { Category } from '../interfaces/Category'; // Asegúrate de tener la interfaz Category
 
 // Establecer el elemento de la aplicación para react-modal
 Modal.setAppElement('#root');
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  size: string;
-  color: string;
-  image: string;
-  description: string;
-}
 
 const Navbar: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -26,10 +18,19 @@ const Navbar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
   const navigate = useNavigate();
-  const { isLoginModalOpen, isLoggedIn, username, openLoginModal, closeLoginModal, setIsLoggedIn, setUsername, setEmail: setUserEmail, role, setRole } = useNavbarContext();
+  const {
+    isLoginModalOpen,
+    isLoggedIn,
+    username,
+    openLoginModal,
+    closeLoginModal,
+    setIsLoggedIn,
+    setUsername,
+    setEmail: setUserEmail,
+    role,
+    setRole,
+  } = useNavbarContext();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -118,23 +119,6 @@ const Navbar: React.FC = () => {
     navigate("/");
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    if (query.length > 0) {
-      const results: Product[] = [];
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const handleSearchSelect = (productId: number) => {
-    navigate(`/producto/${productId}`);
-    setSearchQuery('');
-    setSearchResults([]);
-  };
-
   const handleManageAccount = () => {
     navigate('/manage-account');
     setIsDropdownOpen(false);
@@ -143,6 +127,12 @@ const Navbar: React.FC = () => {
   const handleTrackOrders = () => {
     navigate('/track-orders');
     setIsDropdownOpen(false);
+  };
+
+  // Nueva función para manejar la selección de una categoría desde el buscador
+  const handleCategorySelect = (category: Category) => {
+    console.log("Categoría seleccionada:", category);
+    navigate(`/categorias/${category.idCategoria}`); // Redirige a la página de la categoría seleccionada
   };
 
   return (
@@ -155,28 +145,8 @@ const Navbar: React.FC = () => {
         <div className="flex space-x-6 items-center flex-grow justify-center">
           <Link to="/" className="hover:text-gray-700 transition-colors">Inicio</Link>
           <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Categorías</Link>
-          <div className="relative w-1/3">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              className="border px-4 py-2 rounded-full shadow-sm w-full"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-50">
-                {searchResults.map((product) => (
-                  <div
-                    key={product.id}
-                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => handleSearchSelect(product.id)}
-                  >
-                    {product.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Componente de búsqueda */}
+          <SearchBar onCategorySelect={handleCategorySelect} />
           <Link to="/cart" className="flex items-center hover:text-gray-700 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5H4M7 13l-1.6 8H18l-1.6-8M10 21h4" />
