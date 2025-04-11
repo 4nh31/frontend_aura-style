@@ -3,9 +3,8 @@ import { useCart } from "../contexts/CartContext";
 import CardCarritoProducto from "./cardCarritoProducto";
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
-import { getProducts } from '../utils/productUtils';
 import { useNavbarContext } from '../contexts/NavbarContext';
 import { getCupones } from '../services/cuponesServices';
 import PayPalButton from './PayPalButton';
@@ -21,8 +20,8 @@ const Cart: React.FC = () => {
       </div>
     );
   }
+
   const { isLoggedIn } = useNavbarContext();
-  const [items, setItems] = useState<{ id: number; name: string; size: string; color: string; price: number; quantity: number; image: string; }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [couponCode, setCouponCode] = useState('');
@@ -31,60 +30,28 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
   const [cuponesDisponibles, setCuponesDisponibles] = useState<any[]>([]);
 
-
-  useEffect(() => {
-    const storedItems = JSON.parse(localStorage.getItem('cart') || '[]') || getProducts().map(product => ({ ...product, quantity: 1 }));
-    setItems(storedItems);
-
-
+  // Cargar cupones disponibles al inicio
+  React.useEffect(() => {
     getCupones().then((data) => {
       setCuponesDisponibles(data);
     }).catch((err) => {
       console.error('Error al cargar cupones:', err);
     });
-
   }, []);
-
-  const handleQuantityChange = (id: number, delta: number) => {
-    const updatedItems = items.map(item => 
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    );
-    setItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-  };
-
-  const handleRemove = (id: number) => {
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-  };
-
- /* const handleApplyCoupon = () => {
-    const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
-    const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
-    if (coupon) {
-      setDiscount(coupon.discount);
-      setModalMessage('Cupón aplicado exitosamente.');
-    } else {
-      setDiscount(0);
-      setModalMessage('Cupón no válido.');
-    }
-    setIsModalOpen(true);
-  };*/
 
   const handleApplyCoupon = () => {
     const coupon = cuponesDisponibles.find((c) => c.codigo === couponCode);
-  
+
     if (!coupon) {
       setDiscount(0);
       setModalMessage('Cupón no válido.');
       setIsModalOpen(true);
       return;
     }
-  
+
     const hoy = new Date();
     const fechaExpiracion = new Date(coupon.fecha_expiracion);
-  
+
     if (fechaExpiracion < hoy) {
       setDiscount(0);
       setModalMessage('Cupón expirado.');
@@ -92,30 +59,28 @@ const Cart: React.FC = () => {
       setDiscount(parseFloat(coupon.valor_descuento));
       setModalMessage('¡Cupón aplicado correctamente!');
     }
-  
+
     setIsModalOpen(true);
   };
-  
 
   const handleConfirmarPedido = async () => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('idUsuario');
 
+    console.log('TOKEN:', token);
+    console.log('USER ID:', userId);
 
-  console.log('TOKEN:', token);
-  console.log('USER ID:', userId);
+    if (!token || !userId) {
+      setModalMessage('Debes iniciar sesión para hacer un pedido.');
+      setIsModalOpen(true);
+      return;
+    }
 
-  if (!token || !userId) {
-    setModalMessage('Debes iniciar sesión para hacer un pedido.');
-    setIsModalOpen(true);
-    return;
-  }
-  
-  const coupon = cuponesDisponibles.find(c => c.codigo === couponCode);
-  
+    const coupon = cuponesDisponibles.find(c => c.codigo === couponCode);
+
     let appliedDiscount = 0;
     let appliedCouponId = null;
-  
+
     if (coupon) {
       appliedDiscount = coupon.discount;
       appliedCouponId = coupon.idCupon;
@@ -127,10 +92,10 @@ const Cart: React.FC = () => {
     } else {
       setModalMessage('Pedido creado sin cupón.');
     }
-  
-    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
     const discountedTotal = total * (1 - appliedDiscount / 100);
-  
+
     const pedidoData = {
       fecha: new Date().toISOString().split('T')[0],
       hora: new Date().toTimeString().split(' ')[0],
@@ -140,14 +105,14 @@ const Cart: React.FC = () => {
       idUsuario: userId,
       idCupon: appliedCouponId
     };
-  
+
     try {
       const response = await axios.post('http://localhost:3000/pedidos', pedidoData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-  
+
       const pedidoIdFromBackend = response.data.id;
       setPedidoId(pedidoIdFromBackend);
       setIsModalOpen(true);
@@ -156,8 +121,8 @@ const Cart: React.FC = () => {
       setIsModalOpen(true);
     }
   };
-  
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
   const discountedTotal = total * (1 - discount / 100);
 
   return (
@@ -194,7 +159,7 @@ const Cart: React.FC = () => {
             ))}
           </ul>
           <p className="font-bold text-lg mb-4">
-            Total: ${carrito.total.toFixed(2)}
+            Total: ${total.toFixed(2)}
           </p>
           {discount > 0 && <p className="font-bold text-lg mb-4">Descuento: -{discount}%</p>}
           <p className="font-bold text-lg mb-4">Total con Descuento: ${discountedTotal.toFixed(2)}</p>
@@ -206,22 +171,21 @@ const Cart: React.FC = () => {
             className="border px-4 py-2 mb-4 w-full rounded-md"
           />
           <button onClick={handleApplyCoupon} className="w-full bg-black text-white py-2 mb-4 rounded-md hover:bg-gray-800 transition-colors">Aplicar Cupón</button>
-            {pedidoId ? (
-              <PayPalButton 
-                items={items} 
-                total={discountedTotal} 
-                pedidoId={pedidoId}
-                descuento={discount}
-              />
+          {pedidoId ? (
+            <PayPalButton 
+              items={carrito.productos} 
+              total={discountedTotal} 
+              pedidoId={pedidoId}
+              descuento={discount}
+            />
           ) : (
-         <button
-            onClick={handleConfirmarPedido}
-            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
-        >
-         Confirmar Pedido
-        </button>
-      )}
-
+            <button
+              onClick={handleConfirmarPedido}
+              className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Confirmar Pedido
+            </button>
+          )}
         </div>
       </div>
     </div>
