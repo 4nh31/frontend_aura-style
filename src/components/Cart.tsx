@@ -117,9 +117,9 @@ const Cart: React.FC = () => {
     let appliedCouponId = null;
   
     if (coupon) {
-      appliedDiscount = coupon.discount;
+      appliedDiscount =  parseFloat(coupon.valor_descuento);;
       appliedCouponId = coupon.idCupon;
-      setDiscount(coupon.discount);
+      setDiscount(appliedDiscount);
       setModalMessage('Cupón aplicado exitosamente. Pedido creado.');
     } else if (couponCode.trim() !== '') {
       setDiscount(0);
