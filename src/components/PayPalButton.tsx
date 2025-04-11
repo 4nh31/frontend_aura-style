@@ -12,8 +12,8 @@ interface PayPalButtonProps {
 type ItemType = {
   id: number;
   name: string;
-  size: string;
-  color: string;
+  description: string;
+  category: string;
   price: number;
   quantity: number;
   image: string;

@@ -103,7 +103,11 @@ const Cart: React.FC = () => {
       total: discountedTotal.toFixed(2),
       tipo_envio: 'domicilio',
       idUsuario: userId,
-      idCupon: appliedCouponId
+      idCupon: appliedCouponId,
+      productos: carrito.productos.map(({ idProducto, cantidad }) => ({
+        idProducto,
+        cantidad,
+      })),
     };
 
     try {
@@ -115,6 +119,7 @@ const Cart: React.FC = () => {
 
       const pedidoIdFromBackend = response.data.id;
       setPedidoId(pedidoIdFromBackend);
+      setModalMessage('Pedido creado exitosamente.');
       setIsModalOpen(true);
     } catch (error: any) {
       setModalMessage(`Error al realizar el pedido: ${error.response?.data?.error || error.message}`);
