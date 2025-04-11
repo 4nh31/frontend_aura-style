@@ -6,9 +6,8 @@ import IconoFiltro from '../assets/img/IconoFiltro.png';
 import CardProduct from "./CardProduct"; // Importamos el nuevo componente
 
 interface FiltroValores {
-  idCategoria: number | string;
-  precio: string;
-  tamaño: string;
+  idCategoria: number | string; // Permitimos que sea tanto número como string por flexibilidad
+  precio: string; // Tipo corregido para que coincida con los valores de filtro
 }
 
 const FiltroProducto: React.FC = () => {
@@ -25,7 +24,6 @@ const FiltroProducto: React.FC = () => {
   const [filtros, setFiltros] = useState<FiltroValores>({
     idCategoria: categoriaRecibida,
     precio: "",
-    tamaño: "",
   });
 
   // Obtener productos desde la API al montar el componente
@@ -41,7 +39,7 @@ const FiltroProducto: React.FC = () => {
 
           // Filtrar inicialmente por la categoría recibida
           const initialFiltered = response.filter(
-            (product: IProducto) => product.idCategoria === categoriaRecibida
+            (product: IProducto) => product.idCategoria === Number(categoriaRecibida) // Convertir categoría a número para evitar errores
           );
           setFilteredProducts(initialFiltered);
         } catch (error) {
@@ -53,14 +51,14 @@ const FiltroProducto: React.FC = () => {
     }
   }, [categoriaRecibida, navigate]);
 
-  // Función para aplicar el filtrado adicional (precio y tamaño)
+  // Función para aplicar el filtrado adicional (precio)
   const applyFilters = () => {
     let filtered = products;
 
     // Filtrar por categoría
     if (filtros.idCategoria) {
       filtered = filtered.filter(
-        (product) => product.idCategoria === filtros.idCategoria
+        (product) => product.idCategoria === Number(filtros.idCategoria) // Convertir a número
       );
     }
 
@@ -68,32 +66,24 @@ const FiltroProducto: React.FC = () => {
     if (filtros.precio) {
       if (filtros.precio === "$100 - $500") {
         filtered = filtered.filter(
-          (product) =>
-            parseFloat(product.precio) >= 100 && parseFloat(product.precio) <= 500
+          (product) => product.precio >= 100 && product.precio <= 500
         );
       }
       if (filtros.precio === "$500 - $1,000") {
         filtered = filtered.filter(
-          (product) =>
-            parseFloat(product.precio) >= 500 && parseFloat(product.precio) <= 1000
+          (product) => product.precio >= 500 && product.precio <= 1000
         );
       }
       if (filtros.precio === "$1,000 - $3,000") {
         filtered = filtered.filter(
-          (product) =>
-            parseFloat(product.precio) >= 1000 && parseFloat(product.precio) <= 3000
+          (product) => product.precio >= 1000 && product.precio <= 3000
         );
       }
       if (filtros.precio === "Más de $5,000") {
-        filtered = filtered.filter((product) => parseFloat(product.precio) > 5000);
+        filtered = filtered.filter((product) => product.precio > 5000);
       }
     }
-
-    // Filtrar por tamaño
-    if (filtros.tamaño) {
-      filtered = filtered.filter((product) => product.tamaño === filtros.tamaño);
-    }
-
+    
     // Actualizar los productos filtrados
     setFilteredProducts(filtered);
   };
@@ -147,30 +137,6 @@ const FiltroProducto: React.FC = () => {
             </div>
           </div>
 
-          <div className="LineaDivisor border-1 border-gray-200 w-60 ml-5 mr-5 -mt-2 mb-5"></div>
-
-          <div className="TituloTipoProducto items-center flex flex-col border-1 w-30 ml-20 mb-3 mt-3 rounded-4xl">
-            <p className="text-base italic">Tamaño</p>
-          </div>
-
-          <div className="Sizes ml-16 mb-5">
-            <div className="flex">
-              <button onClick={() => toggleFiltro("tamaño", "CH")} className={`border-1 w-15 ml-2 mb-1 mt-3 rounded-lg text-xs hover:bg-yellow-300 hover:font-bold ${filtros.tamaño === "CH" ? "bg-yellow-300 font-bold" : ""}`}>
-                CH
-              </button>
-              <button onClick={() => toggleFiltro("tamaño", "MD")} className={`border-1 w-15 ml-2 mb-1 mt-3 rounded-lg text-xs hover:bg-yellow-300 hover:font-bold ${filtros.tamaño === "MD" ? "bg-yellow-300 font-bold" : ""}`}>
-                MD
-              </button>
-            </div>
-            <div className="flex">
-              <button onClick={() => toggleFiltro("tamaño", "G")} className={`border-1 w-15 ml-2 mb-1 mt-3 rounded-lg text-xs hover:bg-yellow-300 hover:font-bold ${filtros.tamaño === "G" ? "bg-yellow-300 font-bold" : ""}`}>
-                G
-              </button>
-              <button onClick={() => toggleFiltro("tamaño", "XG")} className={`border-1 w-15 ml-2 mb-1 mt-3 rounded-lg text-xs hover:bg-yellow-300 hover:font-bold ${filtros.tamaño === "XG" ? "bg-yellow-300 font-bold" : ""}`}>
-                XG
-              </button>
-            </div>
-          </div>
 
           <div className="LineaDivisor border-1 border-gray-200 w-60 ml-5 mr-5 -mt-2 mb-5"></div>
 

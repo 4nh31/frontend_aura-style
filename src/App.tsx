@@ -10,6 +10,7 @@ import AdminPage from './components/AdminPage';
 import ProductManagement from './components/ProductManagement'; 
 import CouponManagement from './components/CouponManagement'; 
 import DetallesProducto from './components/DetallesProducto';
+import { CartProvider } from "./contexts/CartContext";
 import FiltradoProducto from './components/FiltradoProducto';
 import ManageAccount from './components/ManageAccount';
 import Catalogo from './components/Catalogo';
@@ -61,9 +62,11 @@ const App: React.FC = () => {
   return (
     <NavbarProvider>
       <AllProductsProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
       </AllProductsProvider>
     </NavbarProvider>
   );

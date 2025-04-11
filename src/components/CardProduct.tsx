@@ -5,25 +5,23 @@ interface Product {
   idProducto: number;
   nombre: string;
   descripcion: string;
-  idCategoria: string;
-  precio: string;
-  tamaño: string;
+  idCategoria: number | string;
+  precio: number;
   imagenPrincipal: string;
 }
 
 const CardProduct: React.FC<{ product: Product }> = ({ product }) => {
     const navigate = useNavigate(); // Usamos useNavigate para redirigir al usuario
+
     // Función para manejar el clic en el botón "Ver Producto"
     const handleClick = () => {
-      navigate("/detalles-producto", { state: { idProducto: product.idProducto } });
+      navigate("/detalles-producto", { state: product }); // Pasar el producto completo como estado
     };
-
 
   return (
     <div className="CardProducto w-60 border border-gray-300 rounded-lg p-4 shadow-md hover:shadow-lg">
       <img src={product.imagenPrincipal} alt={product.nombre} className="w-full h-40 object-cover rounded-md" />
       <h3 className="text-lg font-semibold mt-2">{product.nombre}</h3>
-      <p className="text-sm text-gray-500">{product.tamaño}</p>
       <p className="text-md font-bold text-gray-700">${product.precio}</p>
       <button 
         onClick={handleClick}
