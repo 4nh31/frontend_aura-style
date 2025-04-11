@@ -6,19 +6,11 @@ import { useNavbarContext } from '../contexts/NavbarContext';
 import { ILogin } from '../interfaces/ILogin';
 import { login, register, requestResetPassword } from '../services/userServices';
 import { IRegister } from '../interfaces/IRegister';
+import SearchBar from './SearchBar'; // Importamos el nuevo buscador
+import { Category } from '../interfaces/Category'; // Asegúrate de tener la interfaz Category
 
 // Establecer el elemento de la aplicación para react-modal
 Modal.setAppElement('#root');
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  size: string;
-  color: string;
-  image: string;
-  description: string;
-}
 
 const Navbar: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -26,10 +18,19 @@ const Navbar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
   const navigate = useNavigate();
-  const { isLoginModalOpen, isLoggedIn, username, openLoginModal, closeLoginModal, setIsLoggedIn, setUsername, setEmail: setUserEmail, role, setRole } = useNavbarContext();
+  const {
+    isLoginModalOpen,
+    isLoggedIn,
+    username,
+    openLoginModal,
+    closeLoginModal,
+    setIsLoggedIn,
+    setUsername,
+    setEmail: setUserEmail,
+    role,
+    setRole,
+  } = useNavbarContext();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -118,23 +119,6 @@ const Navbar: React.FC = () => {
     navigate("/");
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    if (query.length > 0) {
-      const results: Product[] = [];
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const handleSearchSelect = (productId: number) => {
-    navigate(`/producto/${productId}`);
-    setSearchQuery('');
-    setSearchResults([]);
-  };
-
   const handleManageAccount = () => {
     navigate('/manage-account');
     setIsDropdownOpen(false);
@@ -143,6 +127,12 @@ const Navbar: React.FC = () => {
   const handleTrackOrders = () => {
     navigate('/track-orders');
     setIsDropdownOpen(false);
+  };
+
+  // Nueva función para manejar la selección de una categoría desde el buscador
+  const handleCategorySelect = (category: Category) => {
+    console.log("Categoría seleccionada:", category);
+    navigate(`/categorias/${category.idCategoria}`); // Redirige a la página de la categoría seleccionada
   };
 
   return (
@@ -154,6 +144,9 @@ const Navbar: React.FC = () => {
         </div>
         <div className="flex space-x-6 items-center flex-grow justify-center">
           <Link to="/" className="hover:text-gray-700 transition-colors">Inicio</Link>
+          <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Categorías</Link>
+          {/* Componente de búsqueda */}
+          <SearchBar onCategorySelect={handleCategorySelect} />
           <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Catalogo</Link>
           <div className="relative w-1/3">
             <input

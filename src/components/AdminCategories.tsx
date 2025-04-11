@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { Category } from '../interfaces/Category';
 import { createCategory, updateCategoria, getcategory, deleteCategoria } from '../services/categoriaService';
+import SearchBar from './SearchBar'; // Importar SearchBar
 
 Modal.setAppElement('#root'); // Configurar el elemento raíz para los modales
 
@@ -15,6 +16,28 @@ const AdminCategories: React.FC = () => {
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // Modal de éxito para edición
   const [isDeleteSuccessModalOpen, setIsDeleteSuccessModalOpen] = useState(false); // Modal de éxito para eliminación
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getcategory();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error al obtener categorías', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleCategorySelect = (category: Category) => {
+    // Seleccionar una categoría desde el buscador
+    setNombre(category.nombre);
+    setDescripcion(category.descripcion);
+    setParentId(category.parentId);
+    setEditCategoryId(category.idCategoria);
+  };
+
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -119,6 +142,10 @@ const AdminCategories: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-bold mb-4">Administrar Categorías</h2>
+
+      {/* Integrar SearchBar */}
+      <SearchBar onCategorySelect={handleCategorySelect} />
+
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto mb-8">
         <div className="mb-4">
           <label className="block text-gray-700 mb-2">Nombre</label>
