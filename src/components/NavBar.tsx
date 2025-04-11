@@ -154,7 +154,7 @@ const Navbar: React.FC = () => {
         </div>
         <div className="flex space-x-6 items-center flex-grow justify-center">
           <Link to="/" className="hover:text-gray-700 transition-colors">Inicio</Link>
-          <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Categorías</Link>
+          <Link to="/Catalogo" className="hover:text-gray-700 transition-colors">Catalogo</Link>
           <div className="relative w-1/3">
             <input
               type="text"

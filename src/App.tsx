@@ -8,6 +8,8 @@ import ThankYou from './components/ThankYou';
 import Navbar from './components/NavBar';
 import AdminPage from './components/AdminPage';
 import DetallesProducto from './components/DetallesProducto';
+import { CartProvider } from "./contexts/CartContext";
+import FiltradoProducto from './components/FiltradoProducto';
 import ManageAccount from './components/ManageAccount';
 import Catalogo from './components/Catalogo';
 import Footer from './components/Footer';
@@ -50,7 +52,8 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<><Home /><Footer /></>} />
         <Route path="/cart" element={<><Cart /><Footer /></>} />
         <Route path="/gracias" element={<><ThankYou /><Footer /></>} />
-        <Route path="/producto/:id" element={<><DetallesProducto /><Footer /></>} />
+        <Route path="/detalles-producto" element={<><DetallesProducto /><Footer /></>} />
+        <Route path="/filtrado" element={<><FiltradoProducto /><Footer /></>} />
         <Route path="/manage-account" element={<><ManageAccount /><Footer /></>} />
         <Route path="/Catalogo" element={<><Catalogo /><Footer /></>} />
         <Route
@@ -74,9 +77,11 @@ const App: React.FC = () => {
   return (
     <NavbarProvider>
       <AllProductsProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
       </AllProductsProvider>
     </NavbarProvider>
   );

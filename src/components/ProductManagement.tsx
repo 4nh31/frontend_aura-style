@@ -62,6 +62,8 @@ const ProductManagement: React.FC = () => {
   const handleAddProduct = async (event: React.FormEvent) => {
     event.preventDefault();
 
+ 
+
     const formData = new FormData();
     formData.append('nombre', name);
     formData.append('descripcion', description);
@@ -69,9 +71,13 @@ const ProductManagement: React.FC = () => {
     formData.append('stock', stock as string);
     formData.append('idCategoria', category.toString());
 
-    if (imageMain) formData.append('imagenes', imageMain);
-    if (imageSecOne) formData.append('imagenes', imageSecOne);
-    if (imageSecTwo) formData.append('imagenes', imageSecTwo);
+
+    const imagenes: File []=[];
+    if (imageMain){ imagenes.push(imageMain); formData.append('imagenes', imageMain);}
+    if (imageSecOne){ imagenes.push(imageSecOne); formData.append('imagenes', imageSecOne);}
+    if (imageSecTwo){ imagenes.push(imageSecTwo); formData.append('imagenes', imageSecTwo);}
+
+
 
     try {
       if (editingProduct) {
@@ -84,7 +90,12 @@ const ProductManagement: React.FC = () => {
           idCategoria: category.toString(),
         };
 
-        await updateProducto(producto);
+        const imagenes: File []=[];
+        if (imageMain){ imagenes.push(imageMain); formData.append('imagenes', imageMain);}
+        if (imageSecOne){ imagenes.push(imageSecOne); formData.append('imagenes', imageSecOne);}
+        if (imageSecTwo){ imagenes.push(imageSecTwo); formData.append('imagenes', imageSecTwo);}
+
+        await updateProducto(producto, imagenes);
         const refreshed = await getProductos();
         setProducts(refreshed);
         setEditingProduct(null);

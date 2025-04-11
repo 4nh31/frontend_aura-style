@@ -1,12 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from "react";
+import { useCart } from "../contexts/CartContext";
+import CardCarritoProducto from "./cardCarritoProducto";
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavbarContext } from '../contexts/NavbarContext';
 import { getProducts } from '../utils/productUtils';
+import { useNavbarContext } from '../contexts/NavbarContext';
+import { getCupones } from '../services/cuponesServices';
 import PayPalButton from './PayPalButton';
 
 const Cart: React.FC = () => {
+  const { carrito, updateQuantity, removeProduct } = useCart();
+
+  if (!carrito || carrito.productos.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-6 text-center">
+        <h2 className="text-3xl font-bold mb-6">Carrito de Compras</h2>
+        <p className="text-gray-600">Tu carrito está vacío.</p>
+      </div>
+    );
+  }
   const { isLoggedIn } = useNavbarContext();
   const [items, setItems] = useState<{ id: number; name: string; size: string; color: string; price: number; quantity: number; image: string; }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,10 +29,20 @@ const Cart: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [pedidoId, setPedidoId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const [cuponesDisponibles, setCuponesDisponibles] = useState<any[]>([]);
+
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem('cart') || '[]') || getProducts().map(product => ({ ...product, quantity: 1 }));
     setItems(storedItems);
+
+
+    getCupones().then((data) => {
+      setCuponesDisponibles(data);
+    }).catch((err) => {
+      console.error('Error al cargar cupones:', err);
+    });
+
   }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {
@@ -35,7 +59,7 @@ const Cart: React.FC = () => {
     localStorage.setItem('cart', JSON.stringify(updatedItems));
   };
 
-  const handleApplyCoupon = () => {
+ /* const handleApplyCoupon = () => {
     const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
     const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
     if (coupon) {
@@ -46,7 +70,32 @@ const Cart: React.FC = () => {
       setModalMessage('Cupón no válido.');
     }
     setIsModalOpen(true);
+  };*/
+
+  const handleApplyCoupon = () => {
+    const coupon = cuponesDisponibles.find((c) => c.codigo === couponCode);
+  
+    if (!coupon) {
+      setDiscount(0);
+      setModalMessage('Cupón no válido.');
+      setIsModalOpen(true);
+      return;
+    }
+  
+    const hoy = new Date();
+    const fechaExpiracion = new Date(coupon.fecha_expiracion);
+  
+    if (fechaExpiracion < hoy) {
+      setDiscount(0);
+      setModalMessage('Cupón expirado.');
+    } else {
+      setDiscount(parseFloat(coupon.valor_descuento));
+      setModalMessage('¡Cupón aplicado correctamente!');
+    }
+  
+    setIsModalOpen(true);
   };
+  
 
   const handleConfirmarPedido = async () => {
     const token = localStorage.getItem('token');
@@ -62,15 +111,14 @@ const Cart: React.FC = () => {
     return;
   }
   
-    const storedCoupons = JSON.parse(localStorage.getItem('coupons') || '[]');
-    const coupon = storedCoupons.find((c: { code: string }) => c.code === couponCode);
+  const coupon = cuponesDisponibles.find(c => c.codigo === couponCode);
   
     let appliedDiscount = 0;
     let appliedCouponId = null;
   
     if (coupon) {
       appliedDiscount = coupon.discount;
-      appliedCouponId = coupon.id;
+      appliedCouponId = coupon.idCupon;
       setDiscount(coupon.discount);
       setModalMessage('Cupón aplicado exitosamente. Pedido creado.');
     } else if (couponCode.trim() !== '') {
@@ -115,38 +163,39 @@ const Cart: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <h2 className="text-3xl font-bold mb-6 text-center">Carrito de Compras</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          {items.map(item => (
-            <div key={item.id} className="flex flex-col md:flex-row items-center justify-between border-b pb-6 mb-6">
-              <div className="flex items-center mb-4 md:mb-0">
-                <img src={item.image} alt={item.name} className="w-48 h-48 object-cover rounded-md shadow-md mr-4" />
-                <div>
-                  <h3 className="font-bold text-xl">{item.name}</h3>
-                  <p className="text-gray-600">Talla: {item.size} | Color: {item.color}</p>
-                  <p className="text-gray-800 font-semibold">Precio: ${item.price}</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <button onClick={() => handleQuantityChange(item.id, -1)} className="px-3 py-1 border rounded-l-md bg-gray-100 hover:bg-gray-200">-</button>
-                <span className="px-3 py-1 border-t border-b">{item.quantity}</span>
-                <button onClick={() => handleQuantityChange(item.id, 1)} className="px-3 py-1 border rounded-r-md bg-gray-100 hover:bg-gray-200">+</button>
-                <button onClick={() => handleRemove(item.id)} className="ml-4 text-red-500 hover:text-red-700">Eliminar</button>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Lista de productos */}
+        <div className="productos-carrito">
+          {carrito.productos.map((product) => (
+            <CardCarritoProducto
+              key={product.idProducto}
+              idProducto={product.idProducto}
+              nombre={product.nombre}
+              imagenPrincipal={product.imagenPrincipal}
+              precio={product.precio}
+              cantidad={product.cantidad}
+              onUpdateQuantity={updateQuantity}
+              onRemoveProduct={removeProduct}
+            />
           ))}
         </div>
-        <div className="border p-6 rounded-md shadow-md">
-          <h3 className="font-bold text-xl mb-4">Total de la Orden</h3>
+
+        {/* Resumen del carrito */}
+        <div className="resumen-carrito border p-6 rounded-md shadow-md">
+          <h3 className="font-bold text-xl mb-4">Resumen del Carrito</h3>
           <ul className="mb-4">
-            {items.map(item => (
-              <li key={item.id} className="flex justify-between mb-2">
-                <span>{item.name} x {item.quantity}</span>
-                <span>${item.price * item.quantity}</span>
+            {carrito.productos.map((product) => (
+              <li key={product.idProducto} className="flex justify-between mb-2">
+                <span>
+                  {product.nombre} x {product.cantidad}
+                </span>
+                <span>${(product.precio * product.cantidad).toFixed(2)}</span>
               </li>
             ))}
           </ul>
-          <p className="font-bold text-lg mb-4">Total: ${total}</p>
+          <p className="font-bold text-lg mb-4">
+            Total: ${carrito.total.toFixed(2)}
+          </p>
           {discount > 0 && <p className="font-bold text-lg mb-4">Descuento: -{discount}%</p>}
           <p className="font-bold text-lg mb-4">Total con Descuento: ${discountedTotal.toFixed(2)}</p>
           <input
@@ -172,25 +221,9 @@ const Cart: React.FC = () => {
          Confirmar Pedido
         </button>
       )}
+
         </div>
       </div>
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        contentLabel="Mensaje"
-        className="fixed top-4 right-4 w-64 bg-white p-4 rounded-md shadow-lg z-50"
-        overlayClassName="fixed inset-0 bg-transparent"
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Mensaje</h2>
-          <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <p>{modalMessage}</p>
-      </Modal>
     </div>
   );
 };
